@@ -18,7 +18,7 @@ public class ManageControllerV1 {
     // private final ManageServise manageService;
 
     /* 회원 조회 */
-    @GetMapping("/customers")
+    @GetMapping("/users")
     public ResponseEntity<List<ResUserDtoV1>> getUserList(
             @RequestParam(required = false) String search,
             @RequestParam(required = false, defaultValue = "1") int page,
@@ -26,11 +26,11 @@ public class ManageControllerV1 {
             @RequestParam(required = false, defaultValue = "id") String sortBy,
             @RequestParam(required = false, defaultValue = "true") boolean isAsc
     ){
-        List<ResUserDtoV1> customerDtoList = new ArrayList<>();
+        List<ResUserDtoV1> userDtoList = new ArrayList<>();
 
-        customerDtoList.add(new ResUserDtoV1("123", "배추도사", "beachoo@naver.com", "서울특별시", "활성화"));
-        customerDtoList.add(new ResUserDtoV1("456", "무도사", "moo@naver.com","광주광역시","비활성화"));
-        return ResponseEntity.ok(customerDtoList);
+        userDtoList.add(new ResUserDtoV1("123", "배추도사", "beachoo@naver.com", "서울특별시", "활성화"));
+        userDtoList.add(new ResUserDtoV1("456", "무도사", "moo@naver.com","광주광역시","비활성화"));
+        return ResponseEntity.ok(userDtoList);
     }
 
     /* 회원 상세 조회 */
@@ -38,7 +38,7 @@ public class ManageControllerV1 {
     public ResponseEntity<ResUserDetailDtoV1> getUser(
             @PathVariable Integer userId
     ){
-        ResUserDetailDtoV1 customerDetailDto = ResUserDetailDtoV1.builder()
+        ResUserDetailDtoV1 userDetailDto = ResUserDetailDtoV1.builder()
                 .userId(userId.toString())
                 .name("홍길동")
                 .email("hong@test.com")
@@ -54,7 +54,7 @@ public class ManageControllerV1 {
                 .updateBy("manager")
                 .build();
 
-        return ResponseEntity.ok(customerDetailDto);
+        return ResponseEntity.ok(userDetailDto);
     }
 
 
@@ -63,7 +63,7 @@ public class ManageControllerV1 {
     public ResponseEntity<?> userDeactive(
             @PathVariable Integer userId
     ){
-//        manageService.customerDeactive();
+//        manageService.userDeactive();
 //        return ResponseEntity.ok("회원 비활성화 완료");
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -73,7 +73,7 @@ public class ManageControllerV1 {
     public ResponseEntity<?> userActive(
             @PathVariable Integer userId
     ){
-//        manageService.customerActive();
+//        manageService.userActive();
 //        return ResponseEntity.ok("회원 활성화 완료");
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -189,7 +189,7 @@ public class ManageControllerV1 {
                 .orderStatus("주문완료")
                 .createdAt(LocalDateTime.now().minusDays(2))
                 .deleteAt(null)
-                .createBy("customer1")
+                .createBy("user1")
                 .deleteBy(null)
                 .build();
 
