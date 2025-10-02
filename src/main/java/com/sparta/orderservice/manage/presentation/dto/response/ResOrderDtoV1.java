@@ -4,14 +4,13 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ResOrderDto {
+public class ResOrderDtoV1 {
     private String orderId;
     private String customerId;
     private String storeId;
