@@ -107,7 +107,7 @@ public class JwtUtil {
      * @param accessToken
      * @param res
      */
-    public void addAccessTokenToHeader(String accessToken, HttpServletResponse res) {
+    public void addAccessTokenToCookie(String accessToken, HttpServletResponse res) {
 
         try {
             res.addCookie(buildCookie(TOKEN_TYPE_ACCESS, accessToken));

@@ -23,3 +23,9 @@ spring:
     web:
       pageable:
         one-indexed-parameters: true
+
+jwt:
+  secret:
+    key: a0df1b20ad4c7f202a9ebc50645ab57b584e247df9c4c939
+  access-token-time: 30000  # 30초
+  refresh-token-time: 60000 # 1분
