@@ -17,7 +17,7 @@ public class ManageController {
 
     /* 회원 조회 */
     @GetMapping("/customer-list/{search}")
-    public ResponseEntity<?> getCustomerList(
+    public ResponseEntity<List<ResCustomerDto>> getCustomerList(
             @PathVariable String search,
             @RequestParam(required = false, defaultValue = "1") int page,
             @RequestParam(required = false, defaultValue = "10") int pageSize,
@@ -25,18 +25,18 @@ public class ManageController {
             @RequestParam(required = false, defaultValue = "true") boolean isAsc
     ){
 //        List<ResCustomerDto> customerDtoList = manageService.getCustomerList();
-//        return new ResponseEntity<>(customerDtoList, HttpStatus.OK);
+//        return ResponseEntity.ok(customerDtoList);
         List<ResCustomerDto> customerDtoList;
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     /* 회원 상세 조회 */
     @GetMapping("/customers/{customerId}")
-    public ResponseEntity<?> getCustomer(
+    public ResponseEntity<List<ResCustomerDto>> getCustomer(
             @PathVariable Integer customerId
     ){
 //        ResCustomerDetailDto customerDetailDto = manageService.getCustomerDetail();
-//        return new ResponseEntity<>(customerDetailDto, HttpStatus.OK);
+//        return ResponseEntity.ok(customerDetailDto);
         ResCustomerDetailDto customerDetailDto;
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -48,6 +48,7 @@ public class ManageController {
             @PathVariable Integer customerId
     ){
 //        manageService.customerDeactive();
+//        return ResponseEntity.ok("회원 비활성화 완료");
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -57,30 +58,31 @@ public class ManageController {
             @PathVariable Integer customerId
     ){
 //        manageService.customerActive();
+//        return ResponseEntity.ok("회원 활성화 완료");
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     /* 가게 조회 */
     @GetMapping("/store-list/{search}")
-    public ResponseEntity<?> getStoreList(
+    public ResponseEntity<List<ResStoreDto>> getStoreList(
             @PathVariable String search,
             @RequestParam(required = false, defaultValue = "1") int page,
             @RequestParam(required = false, defaultValue = "10") int pageSize,
             @RequestParam(required = false, defaultValue = "id") String sortBy,
             @RequestParam(required = false, defaultValue = "true") boolean isAsc){
 //        List<ResStoreDto> storeDtoList = manageService.getStoreList();
-//        return new ResponseEntity<>(storeDtoList, HttpStatus.OK);
+//        return ResponseEntity.ok(storeDtoList);
         List<ResStoreDto> storeDtoList;
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     /* 가게 상세 조회 */
     @GetMapping("/stores/{ownerId}")
-    public ResponseEntity<?> getStore(
+    public ResponseEntity<ResStoreDetailDto> getStore(
             @PathVariable Integer ownerId
     ){
 //        ResStoreDetailDto storeDetailDto = manageService.getStore();
-//        return new ResponseEntity<>(storeDetailDto, HttpStatus.OK);
+//        return ResponseEntity.ok(storeDetailDto);
         ResStoreDetailDto storeDetailDto;
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -91,6 +93,7 @@ public class ManageController {
             @PathVariable Integer ownerId
     ){
 //        manageService.storeDeactive();
+//        return ResponseEntity.ok("가게 비활성화 완료");
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -100,30 +103,31 @@ public class ManageController {
             @PathVariable Integer ownerId
     ){
 //        manageService.storeActive();
+//        return ResponseEntity.ok("가게 활성화 완료");
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     /* 주문 리스트 조회 */
     @GetMapping("/order-list/{search}")
-    public ResponseEntity<?> getOrderList(
+    public ResponseEntity<List<ResOrderDto>> getOrderList(
             @PathVariable String search,
             @RequestParam(required = false, defaultValue = "1") int page,
             @RequestParam(required = false, defaultValue = "10") int pageSize,
             @RequestParam(required = false, defaultValue = "id") String sortBy,
             @RequestParam(required = false, defaultValue = "true") boolean isAsc){
 //        List<ResOrderDto> orderDtoList = manageService.getOrderList();
-//        return new ResponseEntity<>(orderDtoList, HttpStatus.OK);
+//        return ResponseEntity.ok(orderDtoList);
         List<ResOrderDto> orderDtoList;
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     /* 주문 상세 조회 */
     @GetMapping("/orders/{orderId}")
-    public ResponseEntity<?> getOrder(
+    public ResponseEntity<ResOrderDetailDto> getOrder(
             @PathVariable Integer orderId
     ){
 //        ResOrderDetailDto orderDetailDto = manageService.getOrder();
-//        return new ResponseEntity<>(orderDetailDto, HttpStatus.OK);
+//        return ResponseEntity.ok(orderDetailDto);
         ResOrderDetailDto orderDetailDto;
         return new ResponseEntity<>(HttpStatus.OK);
     }
