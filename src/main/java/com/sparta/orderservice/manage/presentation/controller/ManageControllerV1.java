@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/manages")
+@RequestMapping("/v1/manages")
 public class ManageControllerV1 {
 
     // private final ManageServise manageService;
