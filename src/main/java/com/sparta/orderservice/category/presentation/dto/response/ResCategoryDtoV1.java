@@ -9,7 +9,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ResCategoryDto {
+public class ResCategoryDtoV1 {
 
     private UUID id;
 
