@@ -1,11 +1,13 @@
 package com.sparta.orderservice.global.domain.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.MappedSuperclass;
+import com.sparta.orderservice.global.infrastructure.config.auditing.AuditorAwareImpl;
+import jakarta.persistence.*;
 import lombok.Data;
+import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -24,9 +26,19 @@ public class BaseEntity {
 
     private LocalDateTime deletedAt;
 
-    private String createdBy;
+    @CreatedBy
+    private Long createdBy;
 
-    private String updatedBy;
+    @LastModifiedBy
+    private Long updatedBy;
 
-    private String deletedBy;
+    private Long deletedBy;
+
+    @PreRemove
+    public void delete() {
+        AuditorAware<Long> auditorAware = new AuditorAwareImpl();
+
+        deletedAt = LocalDateTime.now();
+        deletedBy = auditorAware.getCurrentAuditor().orElse(Long.MIN_VALUE);
+    }
 }
