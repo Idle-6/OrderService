@@ -27,8 +27,7 @@ class CategoryRepositoryTest {
     void setUp() {
         category = Category.ofNewCategory("한식", 1L);
 
-        manager.persist(category);
-        manager.flush();
+        manager.persistAndFlush(category);
         manager.clear();
     }
 
