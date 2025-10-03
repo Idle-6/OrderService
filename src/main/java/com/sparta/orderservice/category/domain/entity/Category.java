@@ -57,7 +57,6 @@ public class Category {
 
     public void update(String name, Long updatedBy) {
         this.name = name;
-        this.updatedAt = LocalDateTime.now();
         this.updatedBy = updatedBy;
     }
 
