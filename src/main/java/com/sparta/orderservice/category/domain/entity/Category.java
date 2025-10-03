@@ -46,15 +46,13 @@ public class Category {
         this.updatedAt = LocalDateTime.now();
     }
 
-    private Category(String name, Long createdBy, Long updatedBy, Long deletedBy) {
+    private Category(String name, Long createdBy) {
         this.name = name;
         this.createdBy = createdBy;
-        this.updatedBy = updatedBy;
-        this.deletedBy = deletedBy;
     }
 
     public static Category ofNewCategory(String name, Long createdBy){
-        return new Category(name, createdBy, null, null);
+        return new Category(name, createdBy);
     }
 
     public void update(String name, Long updatedBy) {
