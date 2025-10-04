@@ -24,9 +24,9 @@ public class BaseEntity {
 
     private LocalDateTime deletedAt;
 
-    private String createdBy;
+    private Long createdBy;
 
-    private String updatedBy;
+    private Long updatedBy;
 
-    private String deletedBy;
+    private Long deletedBy;
 }
