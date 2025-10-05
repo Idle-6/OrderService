@@ -1,5 +1,6 @@
 package com.sparta.orderservice.menu.presentation.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,5 +25,6 @@ public class ResMenuGetByStoreIdDtoV1 {
     private int price;
 
     @NotNull
+    @JsonProperty("is_public")
     private boolean isPublic;
 }

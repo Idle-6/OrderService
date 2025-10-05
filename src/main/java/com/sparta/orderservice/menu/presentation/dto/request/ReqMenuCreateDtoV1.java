@@ -1,5 +1,6 @@
 package com.sparta.orderservice.menu.presentation.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -20,9 +21,11 @@ public class ReqMenuCreateDtoV1 {
     private int price;
 
     @NotNull
+    @JsonProperty("is_public")
     private boolean isPublic;
 
     @NotNull
+    @JsonProperty("is_use_ai")
     private boolean isUseAi;
 
     private String prompt;

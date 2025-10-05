@@ -1,5 +1,6 @@
 package com.sparta.orderservice.menu.presentation.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,5 +20,6 @@ public class ReqMenuUpdateDtoV1 {
     private int price;
 
     @NotNull
+    @JsonProperty("is_public")
     private boolean isPublic;
 }
