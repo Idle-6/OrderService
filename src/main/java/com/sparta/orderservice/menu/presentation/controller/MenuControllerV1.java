@@ -1,6 +1,7 @@
 package com.sparta.orderservice.menu.presentation.controller;
 
 import com.sparta.orderservice.menu.presentation.dto.request.ReqMenuCreateDtoV1;
+import com.sparta.orderservice.menu.presentation.dto.request.ReqMenuUpdateDtoV1;
 import com.sparta.orderservice.menu.presentation.dto.response.ResMenuCreateDtoV1;
 import com.sparta.orderservice.menu.presentation.dto.response.ResMenuGetByStoreIdDtoV1;
 import com.sparta.orderservice.menu.presentation.dto.response.ResMenuGetDtoV1;
@@ -51,7 +52,7 @@ public class MenuControllerV1 {
                 new ResMenuGetByStoreIdDtoV1(UUID.randomUUID(), "팔보채", "", 15000, true)
         );
 
-        Page<ResMenuGetByStoreIdDtoV1> productList = new PageImpl<>(menuList, pageable, menuList.size());;
+        Page<ResMenuGetByStoreIdDtoV1> productList = new PageImpl<>(menuList, pageable, menuList.size());
 
         return productList;
     }
@@ -68,14 +69,14 @@ public class MenuControllerV1 {
                 .build();
     }
 
-//    @PatchMapping("{menuId}")
-//    public ResponseEntity<String> updateMenu(
-//            @PathVariable("menuId") UUID menuId,
-//            @RequestBody @Valid ReqMenuUpdateDtoV1 request
-//    ) {
-//        return new ResponseEntity<>("Menu updated", HttpStatus.OK);
-//    }
-//
+    @PatchMapping("{menuId}")
+    public ResponseEntity<String> updateMenu(
+            @PathVariable("menuId") UUID menuId,
+            @RequestBody @Valid ReqMenuUpdateDtoV1 request
+    ) {
+        return new ResponseEntity<>("Menu updated", HttpStatus.OK);
+    }
+
 //    @DeleteMapping("{menuId}")
 //    public ResponseEntity<String> deleteMenu(@PathVariable("menuId") UUID menuId) {
 //        return new ResponseEntity<>("Menu deleted", HttpStatus.OK);
