@@ -74,11 +74,13 @@ public class MenuControllerV1 {
             @PathVariable("menuId") UUID menuId,
             @RequestBody @Valid ReqMenuUpdateDtoV1 request
     ) {
+
         return new ResponseEntity<>("Menu updated", HttpStatus.OK);
     }
 
-//    @DeleteMapping("{menuId}")
-//    public ResponseEntity<String> deleteMenu(@PathVariable("menuId") UUID menuId) {
-//        return new ResponseEntity<>("Menu deleted", HttpStatus.OK);
-//    }
+    @DeleteMapping("{menuId}")
+    public ResponseEntity<String> deleteMenu(@PathVariable("menuId") UUID menuId) {
+
+        return new ResponseEntity<>("Menu deleted", HttpStatus.OK);
+    }
 }
