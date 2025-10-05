@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/menu")
+@RequestMapping("/menus")
 public class MenuControllerV1 {
 
     @PostMapping("")
@@ -32,7 +32,7 @@ public class MenuControllerV1 {
                 .build();
     }
 
-    @GetMapping("{storeId}/menu")
+    @GetMapping("/{storeId}/menu")
     public Page<ResMenuGetByStoreIdDtoV1> getMenuListByStoreId(
             @PathVariable UUID storeId,
             @RequestParam("page") int page,
@@ -57,7 +57,7 @@ public class MenuControllerV1 {
         return productList;
     }
 
-    @GetMapping("{menuId}")
+    @GetMapping("/{menuId}")
     public ResMenuGetDtoV1 getMenuById(@PathVariable("menuId") UUID menuId) {
 
         return ResMenuGetDtoV1.builder()
@@ -69,7 +69,7 @@ public class MenuControllerV1 {
                 .build();
     }
 
-    @PatchMapping("{menuId}")
+    @PatchMapping("/{menuId}")
     public ResponseEntity<String> updateMenu(
             @PathVariable("menuId") UUID menuId,
             @RequestBody @Valid ReqMenuUpdateDtoV1 request
@@ -78,7 +78,7 @@ public class MenuControllerV1 {
         return new ResponseEntity<>("Menu updated", HttpStatus.OK);
     }
 
-    @DeleteMapping("{menuId}")
+    @DeleteMapping("/{menuId}")
     public ResponseEntity<String> deleteMenu(@PathVariable("menuId") UUID menuId) {
 
         return new ResponseEntity<>("Menu deleted", HttpStatus.OK);
