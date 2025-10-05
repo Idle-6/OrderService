@@ -24,6 +24,7 @@ public class BaseEntity {
 
     private LocalDateTime deletedAt;
 
+    @Column(updatable = false)
     private Long createdBy;
 
     private Long updatedBy;
