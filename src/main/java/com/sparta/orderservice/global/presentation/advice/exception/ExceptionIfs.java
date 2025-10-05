@@ -4,6 +4,6 @@ import com.sparta.orderservice.global.presentation.advice.error.ErrorCodeIfs;
 
 public interface ExceptionIfs {
 
-    public ErrorCodeIfs getErrorCode();
-    public String getDescription();
+    ErrorCodeIfs getErrorCode();
+    String getDescription();
 }
