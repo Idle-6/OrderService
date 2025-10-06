@@ -21,19 +21,21 @@ import java.util.UUID;
 public class MenuControllerV1 {
 
     @PostMapping("")
-    public ResMenuCreateDtoV1 createMenu(@RequestBody @Valid ReqMenuCreateDtoV1 request) {
+    public ResponseEntity<ResMenuCreateDtoV1> createMenu(@RequestBody @Valid ReqMenuCreateDtoV1 request) {
 
-        return ResMenuCreateDtoV1.builder()
-                .id(UUID.randomUUID())
-                .name(request.getName())
-                .description(request.getDescription())
-                .price(request.getPrice())
-                .isPublic(request.isPublic())
-                .build();
+        return ResponseEntity.ok(
+                ResMenuCreateDtoV1.builder()
+                    .id(UUID.randomUUID())
+                    .name(request.getName())
+                    .description(request.getDescription())
+                    .price(request.getPrice())
+                    .isPublic(request.isPublic())
+                    .build()
+        );
     }
 
     @GetMapping("/{storeId}/menu")
-    public Page<ResMenuGetByStoreIdDtoV1> getMenuListByStoreId(
+    public ResponseEntity<Page<ResMenuGetByStoreIdDtoV1>> getMenuListByStoreId(
             @PathVariable UUID storeId,
             @RequestParam("page") int page,
             @RequestParam("size") int size,
@@ -54,19 +56,21 @@ public class MenuControllerV1 {
 
         Page<ResMenuGetByStoreIdDtoV1> productList = new PageImpl<>(menuList, pageable, menuList.size());
 
-        return productList;
+        return ResponseEntity.ok(productList);
     }
 
     @GetMapping("/{menuId}")
-    public ResMenuGetDtoV1 getMenuById(@PathVariable("menuId") UUID menuId) {
+    public ResponseEntity<ResMenuGetDtoV1> getMenuById(@PathVariable("menuId") UUID menuId) {
 
-        return ResMenuGetDtoV1.builder()
+        return ResponseEntity.ok(
+            ResMenuGetDtoV1.builder()
                 .id(menuId)
                 .name("짬뽕")
                 .description("신라면 정도 매움")
                 .price(10000)
                 .isPublic(true)
-                .build();
+                .build()
+        );
     }
 
     @PatchMapping("/{menuId}")
