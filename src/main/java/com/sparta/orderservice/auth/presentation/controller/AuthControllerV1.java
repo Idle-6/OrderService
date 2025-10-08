@@ -5,6 +5,7 @@ import com.sparta.orderservice.auth.presentation.dto.*;
 import com.sparta.orderservice.user.domain.UserEntity;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.catalina.User;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +32,7 @@ public class AuthControllerV1 {
     }
 
     @PostMapping("/email/varification")
-    public ResponseEntity<ResEmailVarificationCheckDtoV1> verifyEmail(ReqEmailVarcxificationCheckDtoV1 req){
+    public ResponseEntity<ResEmailVarificationCheckDtoV1> verifyEmail(@RequestBody @Valid ReqEmailVarcxificationCheckDtoV1 req){
         ResEmailVarificationCheckDtoV1 body = new ResEmailVarificationCheckDtoV1(
                 true
                 , "이메일 인증이 완료되었습니다."
