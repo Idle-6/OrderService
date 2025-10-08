@@ -23,7 +23,7 @@ public class CategoryServiceV1 {
     public ResCategoryDtoV1 createCategory(ReqCategoryDtoV1 request) {
 
         // 카테고리 존재 여부
-        existCategoryName(request.getName());
+        checkCategoryNameDuplication(request.getName());
 
         // todo: 수정필요
         Category category = Category.ofNewCategory(request.getName(), null);
@@ -55,7 +55,7 @@ public class CategoryServiceV1 {
 
     public ResCategoryDtoV1 updateCategory(UUID categoryId, ReqCategoryUpdateDtoV1 request) {
 
-        existCategoryName(request.getName());
+        checkCategoryNameDuplication(request.getName());
 
         Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을 수 없습니다."));
 
@@ -76,7 +76,7 @@ public class CategoryServiceV1 {
         return new ResCategoryDtoV1(category.getCategoryId(), category.getName());
     }
 
-    private void existCategoryName(String name) {
+    private void checkCategoryNameDuplication(String name) {
         if(categoryRepository.existsByName(name)) {
             throw new IllegalArgumentException("이미 존재하는 카테고리 입니다.");
         }
