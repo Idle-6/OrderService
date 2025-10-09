@@ -39,6 +39,6 @@ public class BaseEntity {
         AuditorAware<Long> auditorAware = new AuditorAwareImpl();
 
         deletedAt = LocalDateTime.now();
-        deletedBy = auditorAware.getCurrentAuditor().orElse(Long.MIN_VALUE);
+        deletedBy = auditorAware.getCurrentAuditor().orElse(null);
     }
 }
