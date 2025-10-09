@@ -16,7 +16,7 @@ public class Category {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(updatable = false, nullable = false)
+    @Column(name = "category_id", updatable = false, nullable = false)
     private UUID categoryId;
 
     @Column(nullable = false)
