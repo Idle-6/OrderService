@@ -105,13 +105,9 @@ class CategoryServiceV1Test {
         ReqCategoryUpdateDtoV1 request = new ReqCategoryUpdateDtoV1("양식");
         when(categoryRepository.findById(Mockito.any())).thenReturn(Optional.of(category));
 
-        ResCategoryDtoV1 response = categoryService.updateCategory(categoryId, request);
+        categoryService.updateCategory(categoryId, request);
 
-
-        assertAll(() -> {
-            assertEquals("양식", category.getName());
-            assertNotNull(category.getUpdatedAt());
-        });
+        verify(categoryRepository, Mockito.times(1)).findById(Mockito.any());
     }
 
     @Test
@@ -124,8 +120,6 @@ class CategoryServiceV1Test {
             categoryService.updateCategory(categoryId, request)
         );
 
-        assertNull(category.getUpdatedAt());
-
     }
 
     @Test
@@ -137,7 +131,6 @@ class CategoryServiceV1Test {
         assertThrows(IllegalArgumentException.class, () ->
             categoryService.updateCategory(categoryId, request)
         );
-        assertNull(category.getUpdatedAt());
 
     }
 

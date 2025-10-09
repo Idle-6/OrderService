@@ -28,7 +28,23 @@ class CategoryRepositoryTest {
         category = Category.ofNewCategory("한식", 1L);
 
         manager.persistAndFlush(category);
-        manager.clear();
+//        manager.clear();
+    }
+
+    @Test
+    @DisplayName("카테고리 수정")
+    void updateCategory_preUpdate() {
+
+        category.update("양식", 2L);
+        manager.flush();
+
+        Category findCategory = manager.find(Category.class, category.getCategoryId());
+
+        assertAll(() -> {
+            assertEquals("양식", findCategory.getName());
+            assertEquals(2L, findCategory.getUpdatedBy());
+            assertNotNull(findCategory.getUpdatedAt());
+        });
     }
 
     @Test
