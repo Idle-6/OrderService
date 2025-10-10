@@ -1,24 +1,36 @@
 package com.sparta.orderservice.global.infrastructure.security;
 // 인증 : 유저 확인 (회원가입 / 로그인)
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sparta.orderservice.auth.infrastructure.util.JwtProperties;
 import com.sparta.orderservice.auth.infrastructure.util.JwtUtil;
 import com.sparta.orderservice.auth.presentation.dto.ReqLoginDtoV1;
 import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
-//Q. JwtUtil은 auth에 있는데 얘는 여기 있는거 맞나요?
 @Slf4j(topic = "로그인 및 JWT 생성")
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     private final JwtUtil jwtUtil;
+
+    @Autowired
+    private JwtProperties jwtProperties;
 
     public JwtAuthenticationFilter(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
@@ -42,5 +54,46 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             log.error(e.getMessage());
             throw new RuntimeException(e.getMessage());
         }
+    }
+
+    @Override
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) {
+        String username = ((UserDetailsImpl) authResult.getPrincipal()).getUsername();
+        UserRoleEnum role = ((UserDetailsImpl) authResult.getPrincipal()).getUser().getRole();
+
+        String accessToken = jwtUtil.createAccessToken(username, role);
+        String refreshToken = jwtUtil.createRefreshToken(username);
+
+        // Refresh 토큰 HttpOnly 쿠키로 설정
+        ResponseCookie cookie = ResponseCookie.from("refresh_token", refreshToken)
+                .httpOnly(true)
+                .secure(false) // HTTP
+                .path("/")
+                .maxAge(jwtProperties.getRefreshTokenTime())
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        // Access 토큰은 헤더에 담아서 응답
+        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, accessToken);
+    }
+
+    @Override
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json;charset=UTF-8");
+
+        String message;
+        if(failed instanceof BadCredentialsException){
+            message = "아이디 혹은 비밀번호가 일치하지 않습니다.";
+        } else {
+            message = "인증에 실패하였습니다.";
+        }
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("error", "unauthorized");
+        body.put("message", message);
+        body.put("timestamp", LocalDateTime.now().toString());
+
+        new ObjectMapper().writeValue(response.getOutputStream(), body);
     }
 }

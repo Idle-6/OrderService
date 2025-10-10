@@ -1,6 +1,7 @@
 package com.sparta.orderservice.auth;
 
 import com.sparta.orderservice.auth.infrastructure.util.JwtUtil;
+import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
 import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,7 @@ class JwtUtilTest {
     void accessTokenCreateTest() {
         // given
         String username = "testUser";
-        String role = "ROLE_USER";
+        UserRoleEnum role = UserRoleEnum.USER;
 
         // when
         String accessToken = jwtUtil.createAccessToken(username, role);
@@ -58,7 +59,7 @@ class JwtUtilTest {
     void expiredTokenTest() throws InterruptedException {
         // given
         String username = "expiredUser";
-        String role = "ROLE_USER";
+        UserRoleEnum role = UserRoleEnum.USER;
 
         String accessToken = jwtUtil.createAccessToken(username, role);
         String tokenValue = jwtUtil.substringToken(accessToken);

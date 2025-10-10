@@ -1,12 +1,15 @@
 package com.sparta.orderservice.auth.infrastructure.util;
 
+import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -33,19 +36,12 @@ public class JwtUtil {
     public static final Logger logger = LoggerFactory.getLogger("JWT 관련 로그");
 
     // === 설정 값 ===
-    // Q. 시크릿키 저장 위치?
-    @Value("${jwt.secret.key}") // Base64 Encode 한 SecretKey
-    private String secretKey;
-    @Value("${jwt.access-token-time:1800000}")     // 30분
-    private long accessTokenTime;
-    @Value("${jwt.refresh-token-time:1209600000}")// 14일 기본
-    private long refreshTokenTime;
+    @Autowired
+    private JwtProperties jwtProperties;
 
     // Q. HTTPS 적용할건지?
 //    @Value("${jwt.cookie.secure:true}")       // HTTPS 환경이면 true
 //    private boolean cookieSecure;
-//    @Value("${jwt.cookie.same-site:Lax}")     // None/Lax/Strict
-//    private String cookieSameSite;
 
     private Key key;
     private final SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
@@ -53,7 +49,7 @@ public class JwtUtil {
     @PostConstruct
     public void init() {
         // Base64 디코딩 후 키 생성
-        byte[] bytes = Base64.getDecoder().decode(secretKey);
+        byte[] bytes = Base64.getDecoder().decode(jwtProperties.getSecretKey());
         key = Keys.hmacShaKeyFor(bytes);
     }
 
@@ -66,8 +62,8 @@ public class JwtUtil {
      * @param role
      * @return
      */
-    public String createAccessToken(String username, String role) {
-        return BEARER_PREFIX + buildToken(username, role, TOKEN_TYPE_ACCESS, accessTokenTime);
+    public String createAccessToken(String username, UserRoleEnum role) {
+        return BEARER_PREFIX + buildToken(username, role, TOKEN_TYPE_ACCESS, jwtProperties.getAccessTokenTime());
     }
 
     /**
@@ -79,11 +75,11 @@ public class JwtUtil {
     public String createRefreshToken(String username) {
         // Q. 왜 refreshToken에는 Bearer을 붙이지 않는가?
         // API 호출 시 직접 쓰는 토큰이 아니기 때문에 Bearer 필요 없음
-        return buildToken(username, null, TOKEN_TYPE_REFRESH, refreshTokenTime);
+        return buildToken(username, null, TOKEN_TYPE_REFRESH, jwtProperties.getRefreshTokenTime());
     }
 
     // 토큰 생성
-    private String buildToken(String username, String role, String tokenType, long tokenTime) {
+    private String buildToken(String username, UserRoleEnum role, String tokenType, long tokenTime) {
         Date now = new Date();
 
         JwtBuilder builder = Jwts.builder()
