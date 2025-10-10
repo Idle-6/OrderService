@@ -64,4 +64,15 @@ public class UserServiceV1 {
     public User updaterPassword(Long userId, ReqPasswordUpdateDtoV1 requestDto) {
         return null;
     }
+
+    public void deleteUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+        
+        if(!user.isActive()){
+            throw new IllegalArgumentException("이미 탈퇴한 사용자입니다.");
+        }
+
+        user.delete(user.getUserId());
+    }
 }

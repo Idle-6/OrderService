@@ -81,6 +81,7 @@ public class User {
     }
 
     public void delete(Long deletedBy) {
+        this.isActive = false;
         this.deletedAt = LocalDateTime.now();
         this.deletedBy = deletedBy;
     }

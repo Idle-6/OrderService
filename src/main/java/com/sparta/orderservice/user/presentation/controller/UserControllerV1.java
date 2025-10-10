@@ -31,7 +31,7 @@ public class UserControllerV1 {
 
         ResUserDtoV1 res = new ResUserDtoV1(user.getEmail(), user.getName(), user.getRole());
 
-        URI location = URI.create("/auth/login");
+        URI location = URI.create("/v1/auth/login");
 
         return ResponseEntity.status(HttpStatus.CREATED).location(location).body(res);
     }
@@ -65,6 +65,9 @@ public class UserControllerV1 {
 
     @DeleteMapping("/{userId}")
     public ResponseEntity<ResUserDeleteDtoV1> deleteUser(@PathVariable Long userId){
+
+        userService.deleteUser(userId);
+
         ResUserDeleteDtoV1 body = new ResUserDeleteDtoV1(
                 userId,
                 true,
