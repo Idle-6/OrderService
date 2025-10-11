@@ -1,5 +1,6 @@
 package com.sparta.orderservice.global.infrastructure.security;
 // 인증 : 유저 확인 (회원가입 / 로그인)
+// TODO : refreshToken 저장 & accessToken 만료 시 재발급
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.orderservice.auth.infrastructure.util.JwtProperties;
 import com.sparta.orderservice.auth.infrastructure.util.JwtUtil;
@@ -65,7 +66,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String refreshToken = jwtUtil.createRefreshToken(username);
 
         // Refresh 토큰 HttpOnly 쿠키로 설정
-        ResponseCookie cookie = ResponseCookie.from("refresh_token", refreshToken)
+        ResponseCookie cookie = ResponseCookie.from(JwtUtil.REFRESH_COOKIE_NAME, refreshToken)
                 .httpOnly(true)
                 .secure(false) // HTTP
                 .path("/")

@@ -5,6 +5,7 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -29,7 +30,7 @@ public class JwtUtil {
     public static final String BEARER_PREFIX = "Bearer ";               // Token 식별자
     public static final String REFRESH_COOKIE_NAME = "refresh_token";   // RT 쿠키명
 
-    public static final String TOKEN_TYPE_KEY = "typ";      // 토큰 종류 식별 클레임
+    public static final String TOKEN_TYPE_KEY = "token_type";      // 토큰 종류 식별 클레임
     public static final String TOKEN_TYPE_ACCESS = "AT";    // accessToken
     public static final String TOKEN_TYPE_REFRESH = "RT";   // refreshToken
 
@@ -90,7 +91,7 @@ public class JwtUtil {
                 .signWith(key, signatureAlgorithm); // 암호화 알고리즘
 
             if (role != null) {
-                builder.claim(AUTHORIZATION_KEY, role); // 사용자 권한
+                builder.claim(AUTHORIZATION_KEY, role.getAuthority()); // 사용자 권한
             }
 
         return builder.compact();   // signed jwt 생성
@@ -136,7 +137,7 @@ public class JwtUtil {
         } else if(tokenType == TOKEN_TYPE_REFRESH){
             cookie = new Cookie(REFRESH_COOKIE_NAME, token);
             cookie.setHttpOnly(true);
-            cookie.setPath("/api/auth"); // /api/auth 경로와 그 하위 경로 요청에만 쿠키 전송
+            cookie.setPath("/v1/auth"); // /v1/auth 경로와 그 하위 경로 요청에만 쿠키 전송
 //            cookie.setPath("/");
         }
 
@@ -148,8 +149,13 @@ public class JwtUtil {
      * @param res
      */
     public void expireRefreshCookie(HttpServletResponse res) {
-        Cookie cookie = new Cookie(REFRESH_COOKIE_NAME, "/api/auth");
+        Cookie cookie = new Cookie(REFRESH_COOKIE_NAME, "/v1/auth");
         res.addCookie(cookie);
+    }
+
+    public String getJwtFromHeader(HttpServletRequest req) {
+        String bearerToken = req.getHeader(AUTHORIZATION_HEADER);
+        return substringToken(bearerToken);
     }
 
     // JWT 토큰 substring
@@ -157,8 +163,7 @@ public class JwtUtil {
         if (StringUtils.hasText(tokenValue) && tokenValue.startsWith(BEARER_PREFIX)) {
             return tokenValue.substring(7);
         }
-        logger.error("Not Found Token");
-        throw new NullPointerException("Not Found Token");
+        return null;
     }
 
     // 토큰 검증
