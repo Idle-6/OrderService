@@ -85,4 +85,8 @@ public class User {
         this.deletedAt = LocalDateTime.now();
         this.deletedBy = deletedBy;
     }
+
+    public void updatePassword(String password) {
+        this.password = password;
+    }
 }

@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -20,6 +21,7 @@ import java.net.URI;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/users")
+@Transactional
 public class UserControllerV1 {
 
     private final UserServiceV1 userService;
@@ -31,14 +33,12 @@ public class UserControllerV1 {
 
         ResUserDtoV1 res = new ResUserDtoV1(user.getEmail(), user.getName(), user.getRole());
 
-        URI location = URI.create("/v1/auth/login");
-
-        return ResponseEntity.status(HttpStatus.CREATED).location(location).body(res);
+        return ResponseEntity.status(HttpStatus.CREATED).body(res);
     }
 
     // Q. userId가 사용자가 입력한 ID값이 아닌데 노출되도 되나? ? ? ? ? ?
     @PatchMapping("/{userId}")
-    public ResponseEntity<ResUserUpdateDtoV1> updateUser(@PathVariable Long userId, ReqUserUpdateDtoV1 requestDto){
+    public ResponseEntity<ResUserUpdateDtoV1> updateUser(@PathVariable Long userId, @RequestBody ReqUserUpdateDtoV1 requestDto){
 
         User user = userService.updateUser(userId, requestDto);
 
@@ -50,11 +50,10 @@ public class UserControllerV1 {
         return ResponseEntity.ok(body);
     }
 
-    // 비밀번호 수정 분리
     @PatchMapping("/{userId}/password")
-    public ResponseEntity<ResPasswordUpdateDtoV1> updatePassword(@PathVariable Long userId, ReqPasswordUpdateDtoV1 requestDto){
+    public ResponseEntity<ResPasswordUpdateDtoV1> updatePassword(@PathVariable Long userId, @RequestBody ReqPasswordUpdateDtoV1 requestDto){
 
-        User user = userService.updaterPassword(userId, requestDto);
+        userService.updaterPassword(userId, requestDto);
 
         ResPasswordUpdateDtoV1 body = new ResPasswordUpdateDtoV1(
                 userId,
