@@ -86,7 +86,7 @@ public class User {
         this.updatedBy = updatedBy;
     }
 
-    public void delete(Long deletedBy) {
+    public void deactive(Long deletedBy) {
         this.isActive = false;
         this.deletedAt = LocalDateTime.now();
         this.deletedBy = deletedBy;

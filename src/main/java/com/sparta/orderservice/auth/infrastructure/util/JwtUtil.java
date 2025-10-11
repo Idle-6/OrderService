@@ -7,11 +7,9 @@ import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -34,13 +32,14 @@ public class JwtUtil {
     public static final String TOKEN_TYPE_ACCESS = "AT";    // accessToken
     public static final String TOKEN_TYPE_REFRESH = "RT";   // refreshToken
 
+    public static final String USER_ID = "user_id";
+
     public static final Logger logger = LoggerFactory.getLogger("JWT 관련 로그");
 
     // === 설정 값 ===
     @Autowired
     private JwtProperties jwtProperties;
 
-    // Q. HTTPS 적용할건지?
 //    @Value("${jwt.cookie.secure:true}")       // HTTPS 환경이면 true
 //    private boolean cookieSecure;
 
@@ -55,32 +54,18 @@ public class JwtUtil {
     }
 
     // === 토큰 발급 ===
-
-    /**
-     * Access Token 발급 (권한 포함)
-     *
-     * @param username
-     * @param role
-     * @return
-     */
-    public String createAccessToken(String username, UserRoleEnum role) {
-        return BEARER_PREFIX + buildToken(username, role, TOKEN_TYPE_ACCESS, jwtProperties.getAccessTokenTime());
+    /** Access Token 발급 (prefix, 권한 포함) */
+    public String createAccessToken(String username, Long userId, UserRoleEnum role) {
+        return BEARER_PREFIX + buildToken(username, userId, role, TOKEN_TYPE_ACCESS, jwtProperties.getAccessTokenTime());
     }
 
-    /**
-     * Refresh Token 발급 (권한 불필요, typ=RT)
-     * refresh는 최소 정보 + Type=RT만
-     * @param username
-     * @return
-     */
-    public String createRefreshToken(String username) {
-        // Q. 왜 refreshToken에는 Bearer을 붙이지 않는가?
-        // API 호출 시 직접 쓰는 토큰이 아니기 때문에 Bearer 필요 없음
-        return buildToken(username, null, TOKEN_TYPE_REFRESH, jwtProperties.getRefreshTokenTime());
+    /** Refresh Token 발급 (권한 불필요, typ=RT) */
+    public String createRefreshToken(String username, Long userId) {
+        return buildToken(username, userId, null, TOKEN_TYPE_REFRESH, jwtProperties.getRefreshTokenTime());
     }
 
-    // 토큰 생성
-    private String buildToken(String username, UserRoleEnum role, String tokenType, long tokenTime) {
+    /** 토큰 생성 */
+    private String buildToken(String username, Long userId, UserRoleEnum role, String tokenType, long tokenTime) {
         Date now = new Date();
 
         JwtBuilder builder = Jwts.builder()
@@ -88,6 +73,7 @@ public class JwtUtil {
                 .setIssuedAt(now)           // 발급일
                 .setExpiration(new Date(now.getTime() + tokenTime))  // 만료 기한
                 .claim(TOKEN_TYPE_KEY, tokenType)   // AT/RT 구분
+                .claim(USER_ID, userId)
                 .signWith(key, signatureAlgorithm); // 암호화 알고리즘
 
             if (role != null) {
@@ -97,68 +83,20 @@ public class JwtUtil {
         return builder.compact();   // signed jwt 생성
     }
 
-    // === 헤더/쿠키 헬퍼 ===
-
-    /**
-     * AT를 JWT Cookie 에 저장
-     * @param accessToken
-     * @param res
-     */
-    public void addAccessTokenToCookie(String accessToken, HttpServletResponse res) {
-
-        try {
-            res.addCookie(buildCookie(TOKEN_TYPE_ACCESS, accessToken));
-        } catch (UnsupportedEncodingException e) {
-            logger.error("쿠키 인코딩 실패: {}", e.getMessage());
-        }
-    }
-
-    /**
-     * RT를 HttpOnly 쿠키에 저장
-     * @param refreshToken
-     * @param res
-     */
-    public void addRefreshTokenToCookie(String refreshToken, HttpServletResponse res) {
-        try {
-            res.addCookie(buildCookie(TOKEN_TYPE_REFRESH, refreshToken));
-        } catch (UnsupportedEncodingException e) {
-            logger.error("쿠키 인코딩 실패: {}", e.getMessage());
-        }
-    }
-
-    private Cookie buildCookie(String tokenType, String token) throws UnsupportedEncodingException {
-        token = URLEncoder.encode(token, "utf-8").replaceAll("\\+", "%20"); // Cookie Value 에는 공백이 불가능해서 encoding 진행
-        Cookie cookie = null;
-
-        if(tokenType == TOKEN_TYPE_ACCESS) {
-            // Q. accessToken는 주로 헤더에 두나요?
-            cookie = new Cookie(AUTHORIZATION_HEADER, token);
-            cookie.setPath("/");
-        } else if(tokenType == TOKEN_TYPE_REFRESH){
-            cookie = new Cookie(REFRESH_COOKIE_NAME, token);
-            cookie.setHttpOnly(true);
-            cookie.setPath("/v1/auth"); // /v1/auth 경로와 그 하위 경로 요청에만 쿠키 전송
-//            cookie.setPath("/");
-        }
-
-        return cookie;
-    }
-
-    /**
-     * RT 쿠키 제거(로그아웃)
-     * @param res
-     */
+    /** RT 쿠키 만료 */
     public void expireRefreshCookie(HttpServletResponse res) {
-        Cookie cookie = new Cookie(REFRESH_COOKIE_NAME, "/v1/auth");
+        Cookie cookie = new Cookie(REFRESH_COOKIE_NAME, null);
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
         res.addCookie(cookie);
     }
 
-    public String getJwtFromHeader(HttpServletRequest req) {
+    public String getAccessTokenFromHeader(HttpServletRequest req) {
         String bearerToken = req.getHeader(AUTHORIZATION_HEADER);
         return substringToken(bearerToken);
     }
 
-    // JWT 토큰 substring
+    /** JWT 토큰 substring */
     public String substringToken(String tokenValue) {
         if (StringUtils.hasText(tokenValue) && tokenValue.startsWith(BEARER_PREFIX)) {
             return tokenValue.substring(7);
@@ -166,7 +104,7 @@ public class JwtUtil {
         return null;
     }
 
-    // 토큰 검증
+    /** 토큰 검증 */
     public boolean validateToken(String token, boolean requireAccess) {
         try {
             Jws<Claims> jws = parse(token);
@@ -206,5 +144,11 @@ public class JwtUtil {
     /** 토큰에서 사용자 정보 가져오기 */
     public Claims getUserInfoFromToken(String token) {
         return parse(token).getBody();
+    }
+
+    public long getExpiredTimeFromHeader(HttpServletRequest request) {
+        String accessToken = getAccessTokenFromHeader(request);
+        Claims info = parse(accessToken).getBody();
+        return info.getExpiration().getTime();
     }
 }

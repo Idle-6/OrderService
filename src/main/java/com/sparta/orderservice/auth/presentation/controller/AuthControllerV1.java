@@ -41,31 +41,4 @@ public class AuthControllerV1 {
 
         return ResponseEntity.ok(body);
     }
-
-    @PostMapping("/login")
-    public ResponseEntity<ResLoginDtoV1> login(ReqLoginDtoV1 req){
-        UserEntity user = new UserEntity();
-        user.setUserId(1L);
-        user.setEmail(req.getEmail());
-        user.setName("홍길동");
-
-
-        ResLoginDtoV1 body = new ResLoginDtoV1(
-                true
-                , "dummy-access-token"
-                , "dummy-refresh-token"
-                , user
-                , 60000 // access 만료 더미
-        );
-        return ResponseEntity.ok(body);
-    }
-
-    @PostMapping("/logout")
-    public ResponseEntity<ResLogoutDtoV1> logout(){
-        ResLogoutDtoV1 body = new ResLogoutDtoV1(
-                true,
-                "로그아웃 되었습니다."
-        );
-        return ResponseEntity.ok(body);
-    }
 }

@@ -9,6 +9,8 @@ import com.sparta.orderservice.user.presentation.dto.response.ResPasswordUpdateD
 import com.sparta.orderservice.user.presentation.dto.response.ResUserDeleteDtoV1;
 import com.sparta.orderservice.user.presentation.dto.response.ResUserDtoV1;
 import com.sparta.orderservice.user.presentation.dto.response.ResUserUpdateDtoV1;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -62,9 +64,9 @@ public class UserControllerV1 {
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<ResUserDeleteDtoV1> deleteUser(@PathVariable Long userId){
+    public ResponseEntity<ResUserDeleteDtoV1> deleteUser(@PathVariable Long userId, HttpServletRequest request, HttpServletResponse response){
 
-        userService.deleteUser(userId);
+        userService.deleteUser(request, response, userId);
 
         ResUserDeleteDtoV1 body = new ResUserDeleteDtoV1(
                 userId,

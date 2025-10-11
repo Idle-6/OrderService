@@ -1,13 +1,14 @@
 package com.sparta.orderservice.global.infrastructure.security;
 
-import ch.qos.logback.core.util.StringUtil;
 import com.sparta.orderservice.auth.infrastructure.util.JwtUtil;
+import com.sparta.orderservice.auth.infrastructure.util.TokenBlacklistMemoryStore;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -23,10 +24,12 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
+    private final TokenBlacklistMemoryStore tokenBlacklistMemoryStore;
 
-    public JwtAuthorizationFilter(JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService) {
+    public JwtAuthorizationFilter(JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService, TokenBlacklistMemoryStore tokenBlacklistMemoryStore) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
+        this.tokenBlacklistMemoryStore = tokenBlacklistMemoryStore;
     }
 
     @Override
@@ -35,20 +38,27 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // 토큰 재발급 (Refresh만 허용)
+        // TODO : 토큰 재발급 (Refresh만 허용)
         if(path.equals("/v1/auth/reissue")){
             return;
         }
 
         // 그 외 API (Access만 허용)
-        String tokenValue = jwtUtil.getJwtFromHeader(request);
-        if(StringUtils.hasText(tokenValue)){
-            if(!jwtUtil.validateToken(tokenValue, true)){
+        String accessToken = jwtUtil.getAccessTokenFromHeader(request);
+        if(StringUtils.hasText(accessToken)){
+            if(!jwtUtil.validateToken(accessToken, true)){
                 log.error("Token Error");
                 return;
             }
 
-            Claims info = jwtUtil.getUserInfoFromToken(tokenValue);
+
+            Claims info = jwtUtil.getUserInfoFromToken(accessToken);
+
+            Long userId = info.get(JwtUtil.USER_ID, Long.class);
+            if(userId != null && tokenBlacklistMemoryStore.isAccessTokenBlacklisted(userId)){
+                log.error("deleted Token");
+                throw new InsufficientAuthenticationException("삭제된 토큰입니다.");
+            }
 
             try {
                 setAuthentication(info.getSubject());

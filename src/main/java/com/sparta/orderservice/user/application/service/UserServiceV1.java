@@ -1,21 +1,21 @@
 package com.sparta.orderservice.user.application.service;
 
+import com.sparta.orderservice.auth.infrastructure.util.JwtUtil;
+import com.sparta.orderservice.auth.infrastructure.util.TokenBlacklistMemoryStore;
 import com.sparta.orderservice.user.domain.entity.User;
 import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
 import com.sparta.orderservice.user.domain.repository.UserRepository;
 import com.sparta.orderservice.user.presentation.dto.request.ReqPasswordUpdateDtoV1;
 import com.sparta.orderservice.user.presentation.dto.request.ReqSignupDtoV1;
 import com.sparta.orderservice.user.presentation.dto.request.ReqUserUpdateDtoV1;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -25,6 +25,8 @@ public class UserServiceV1 {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
+    private final TokenBlacklistMemoryStore tokenBlacklistMemoryStore;
 
     private final String ADMIN_TOKEN = "FcurV51GZOIh6uOGuhyg6dG3odIYYsRM0";
 
@@ -88,14 +90,16 @@ public class UserServiceV1 {
         return user;
     }
 
-    public void deleteUser(Long userId) {
+    public void deleteUser(HttpServletRequest request, HttpServletResponse response, Long userId) {
         User user = findById(userId);
         
         if(!user.isActive()){
             throw new IllegalStateException("이미 탈퇴한 사용자입니다.");
         }
 
-        user.delete(user.getUserId());
+        user.deactive(user.getUserId());
+        jwtUtil.expireRefreshCookie(response);
+        tokenBlacklistMemoryStore.addBlacklist(user.getUserId(), jwtUtil.getExpiredTimeFromHeader(request));
     }
 
     @Transactional(readOnly = true)

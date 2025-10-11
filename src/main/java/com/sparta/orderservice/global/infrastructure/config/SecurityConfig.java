@@ -1,12 +1,16 @@
-package com.sparta.orderservice.global.infrastructure.security;
+package com.sparta.orderservice.global.infrastructure.config;
 
 import com.sparta.orderservice.auth.infrastructure.util.JwtUtil;
+import com.sparta.orderservice.auth.infrastructure.util.TokenBlacklistMemoryStore;
+import com.sparta.orderservice.global.infrastructure.security.JwtAuthenticationFilter;
+import com.sparta.orderservice.global.infrastructure.security.JwtAuthorizationFilter;
+import com.sparta.orderservice.global.infrastructure.security.JwtLogoutHandler;
+import com.sparta.orderservice.global.infrastructure.security.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -24,6 +28,7 @@ public class SecurityConfig {
     private final JwtUtil jwtUtil;
     private final AuthenticationConfiguration authenticationConfiguration;
     private final UserDetailsServiceImpl userDetailsService;
+    private final TokenBlacklistMemoryStore tokenBlacklistMemoryStore;
 
     @Bean
     // 비밀번호 암호화 인코더
@@ -46,7 +51,12 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthorizationFilter jwtAuthorizationFilter() {
-        return new JwtAuthorizationFilter(jwtUtil, userDetailsService);
+        return new JwtAuthorizationFilter(jwtUtil, userDetailsService, tokenBlacklistMemoryStore);
+    }
+
+    @Bean
+    public JwtLogoutHandler jwtLogoutHandler() {
+        return new JwtLogoutHandler(jwtUtil, tokenBlacklistMemoryStore);
     }
 
     @Bean
@@ -70,6 +80,14 @@ public class SecurityConfig {
 
         // 웹 로그인 페이지 비활성화
         http.formLogin(form -> form.disable());
+
+        // 로그아웃
+        http.logout(logout -> logout
+                .logoutUrl("/v1/auth/logout")
+                .addLogoutHandler(jwtLogoutHandler())
+                .logoutSuccessHandler((request, response, auth) ->
+                        response.sendRedirect("/"))
+        );
 
         // 필터 관리
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
