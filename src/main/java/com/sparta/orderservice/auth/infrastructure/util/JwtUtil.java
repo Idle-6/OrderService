@@ -10,6 +10,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -81,6 +83,23 @@ public class JwtUtil {
             }
 
         return builder.compact();   // signed jwt 생성
+    }
+
+    // === 헤더/쿠키 헬퍼 ===
+    /** RT를 HttpOnly 쿠키에 저장 */
+    public void addRefreshTokenToCookie(HttpServletResponse res, String refreshToken) {
+        ResponseCookie cookie = ResponseCookie.from(JwtUtil.REFRESH_COOKIE_NAME, refreshToken)
+                .httpOnly(true)
+                .secure(false) // HTTP
+                .path("/")
+                .maxAge(jwtProperties.getRefreshTokenTime())
+                .build();
+        res.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
+    /** AT를 헤더에 저장 */
+    public void addAccessTokenToHeader(HttpServletResponse res, String accessToken) {
+        res.addHeader(JwtUtil.AUTHORIZATION_HEADER, accessToken);
     }
 
     /** RT 쿠키 만료 */

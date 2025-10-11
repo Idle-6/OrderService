@@ -15,6 +15,16 @@ public enum UserRoleEnum {
         return this.authority;
     }
 
+    public static UserRoleEnum fromAuthority(String authority) {
+        for(UserRoleEnum role : values()) {
+            if(role.getAuthority().equals(authority)){
+                return role;
+            }
+        }
+
+        throw new IllegalArgumentException("알 수 없는 권한 : " + authority);
+    }
+
     public static class Authority {
         public static final String USER = "ROLE_USER";
         public static final String OWNER = "ROLE_OWNER";

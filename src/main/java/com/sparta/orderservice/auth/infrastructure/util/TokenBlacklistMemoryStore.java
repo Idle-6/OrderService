@@ -17,8 +17,6 @@ public class TokenBlacklistMemoryStore {
     @Getter
     private final Map<Long, Long> atBlacklistExpiry = new ConcurrentHashMap<>();
 
-    private final Clock clock = Clock.systemDefaultZone();
-
     public void addBlacklist(Long userId, long expiredMillis) {
         if(userId == null) return;
         atBlacklistExpiry.put(userId, expiredMillis);
@@ -28,7 +26,7 @@ public class TokenBlacklistMemoryStore {
     public boolean isAccessTokenBlacklisted(Long userId) {
         Long exp = atBlacklistExpiry.get(userId);
         if (exp == null) return false;
-        long now = clock.millis();
+        long now = System.currentTimeMillis();
         if (exp <= now) { // 만료 시각 지남 : 정리 후 통과
             atBlacklistExpiry.remove(userId); 
             return false;
@@ -38,7 +36,7 @@ public class TokenBlacklistMemoryStore {
 
     /** 만료된 AT 블랙리스트 항목 정리 */
     public void sweepExpired() {
-        long now = clock.millis();
+        long now = System.currentTimeMillis();
         atBlacklistExpiry.entrySet().removeIf(e -> e.getValue() <= now);
     }
 }

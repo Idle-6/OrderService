@@ -38,12 +38,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // TODO : 토큰 재발급 (Refresh만 허용)
-        if(path.equals("/v1/auth/reissue")){
-            return;
-        }
-
-        // 그 외 API (Access만 허용)
+        // Access만 허용
         String accessToken = jwtUtil.getAccessTokenFromHeader(request);
         if(StringUtils.hasText(accessToken)){
             if(!jwtUtil.validateToken(accessToken, true)){

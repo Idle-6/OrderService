@@ -66,17 +66,8 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String accessToken = jwtUtil.createAccessToken(email, userId, role);
         String refreshToken = jwtUtil.createRefreshToken(email, userId);
 
-        // Refresh 토큰 HttpOnly 쿠키로 설정
-        ResponseCookie cookie = ResponseCookie.from(JwtUtil.REFRESH_COOKIE_NAME, refreshToken)
-                .httpOnly(true)
-                .secure(false) // HTTP
-                .path("/")
-                .maxAge(jwtProperties.getRefreshTokenTime())
-                .build();
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-
-        // Access 토큰은 헤더에 담아서 응답
-        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, accessToken);
+        jwtUtil.addRefreshTokenToCookie(response, refreshToken);
+        jwtUtil.addAccessTokenToHeader(response, accessToken);
     }
 
     @Override
