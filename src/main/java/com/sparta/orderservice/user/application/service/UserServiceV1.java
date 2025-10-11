@@ -12,12 +12,14 @@ import org.apache.coyote.BadRequestException;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class UserServiceV1 {
 
@@ -60,7 +62,12 @@ public class UserServiceV1 {
 
 
     public User updateUser(Long userId, ReqUserUpdateDtoV1 requestDto) {
-        return null;
+        User user = findById(userId);
+
+        if(requestDto.getName() != null) user.updateName(requestDto.getName(), userId);
+        if(requestDto.getAddress() != null) user.updateAddress(requestDto.getAddress(), userId);
+
+        return user;
     }
 
     public void updaterPassword(Long userId, ReqPasswordUpdateDtoV1 requestDto) {
@@ -70,9 +77,9 @@ public class UserServiceV1 {
         user.updatePassword(password);
     }
 
-    private User validatePassword(Long userId, @NotBlank String password) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("회원을 찾을 수 없습니다."));
+    @Transactional(readOnly = true)
+    public User validatePassword(Long userId, @NotBlank String password) {
+        User user = findById(userId);
 
         if(!passwordEncoder.matches(password, user.getPassword())){
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
@@ -82,13 +89,18 @@ public class UserServiceV1 {
     }
 
     public void deleteUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+        User user = findById(userId);
         
         if(!user.isActive()){
             throw new IllegalStateException("이미 탈퇴한 사용자입니다.");
         }
 
         user.delete(user.getUserId());
+    }
+
+    @Transactional(readOnly = true)
+    public User findById(Long userId){
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
     }
 }

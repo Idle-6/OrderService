@@ -74,8 +74,14 @@ public class User {
     @Column(name = "deleted_by")
     private Long deletedBy;
 
-    public void update(String name, Long updatedBy) {
+    public void updateName(String name, Long updatedBy) {
         this.name = name;
+        this.updatedAt = LocalDateTime.now();
+        this.updatedBy = updatedBy;
+    }
+
+    public void updateAddress(String address, Long updatedBy) {
+        this.address = address;
         this.updatedAt = LocalDateTime.now();
         this.updatedBy = updatedBy;
     }

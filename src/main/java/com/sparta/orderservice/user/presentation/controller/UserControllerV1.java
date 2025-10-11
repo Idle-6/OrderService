@@ -21,7 +21,6 @@ import java.net.URI;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/users")
-@Transactional
 public class UserControllerV1 {
 
     private final UserServiceV1 userService;
