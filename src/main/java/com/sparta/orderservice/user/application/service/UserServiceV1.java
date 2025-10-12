@@ -44,9 +44,11 @@ public class UserServiceV1 {
         UserRoleEnum role = UserRoleEnum.USER;
         if (requestDto.isAdmin()) {
             if (!ADMIN_TOKEN.equals(requestDto.getAdminToken())) {
-                throw new IllegalArgumentException("관리자 암호가 틀려 등록이 불가능합니다.");
+                throw new IllegalArgumentException("관리자 암호가 일치하지 않습니다.");
             }
             role = UserRoleEnum.ADMIN;
+        }else if(!requestDto.getRole().isEmpty()) {
+            role = UserRoleEnum.OWNER;
         }
 
         // 사용자 등록
@@ -62,7 +64,6 @@ public class UserServiceV1 {
         return userRepository.save(user);
     }
 
-
     public User updateUser(Long userId, ReqUserUpdateDtoV1 requestDto) {
         User user = findById(userId);
 
@@ -76,7 +77,7 @@ public class UserServiceV1 {
         User user = validatePassword(userId, requestDto.getCurrentPassword());
         String password = passwordEncoder.encode(requestDto.getNewPassword());
 
-        user.updatePassword(password);
+        user.updatePassword(password, userId);
     }
 
     @Transactional(readOnly = true)
