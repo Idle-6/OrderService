@@ -1,6 +1,6 @@
 package com.sparta.orderservice.global.infrastructure.security;
 // 인증 : 유저 확인 (회원가입 / 로그인)
-// TODO : refreshToken 저장 & accessToken 만료 시 재발급
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.orderservice.auth.infrastructure.util.JwtProperties;
 import com.sparta.orderservice.auth.infrastructure.util.JwtUtil;

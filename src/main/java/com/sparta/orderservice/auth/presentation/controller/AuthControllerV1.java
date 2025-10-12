@@ -3,15 +3,10 @@ package com.sparta.orderservice.auth.presentation.controller;
 import com.sparta.orderservice.auth.application.service.AuthServiceV1;
 import com.sparta.orderservice.auth.infrastructure.util.JwtUtil;
 import com.sparta.orderservice.auth.presentation.dto.*;
-import com.sparta.orderservice.user.domain.UserEntity;
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.catalina.User;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
