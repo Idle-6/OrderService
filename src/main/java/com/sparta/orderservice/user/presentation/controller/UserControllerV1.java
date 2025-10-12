@@ -37,15 +37,14 @@ public class UserControllerV1 {
         return ResponseEntity.status(HttpStatus.CREATED).body(res);
     }
 
-    // Q. userId가 사용자가 입력한 ID값이 아닌데 노출되도 되나? ? ? ? ? ?
     @PatchMapping("/{userId}")
     public ResponseEntity<ResUserUpdateDtoV1> updateUser(@PathVariable Long userId, @RequestBody ReqUserUpdateDtoV1 requestDto){
 
         User user = userService.updateUser(userId, requestDto);
 
         ResUserUpdateDtoV1 body = new ResUserUpdateDtoV1(
-                userId,
-                requestDto.getName() != null ? requestDto.getName() : "홍길동",
+                user.getUserId(),
+                user.getName(),
                 "회원 정보가 수정되었습니다."
         );
         return ResponseEntity.ok(body);
