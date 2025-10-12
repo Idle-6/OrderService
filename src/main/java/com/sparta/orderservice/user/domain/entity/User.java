@@ -15,7 +15,8 @@ import java.time.LocalDateTime;
 @Builder
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")
+    @SequenceGenerator(name = "user_seq", sequenceName = "user_seq", allocationSize = 1)
     @Column(name = "user_id", updatable = false, nullable = false)
     private Long userId;
 
@@ -89,7 +90,8 @@ public class User {
         this.deletedBy = deletedBy;
     }
 
-    public void updatePassword(String password) {
+    public void updatePassword(String password, Long updatedBy) {
         this.password = password;
+        this.updatedBy = updatedBy;
     }
 }
