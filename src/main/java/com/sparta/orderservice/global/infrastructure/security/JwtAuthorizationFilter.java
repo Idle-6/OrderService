@@ -37,6 +37,12 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         log.info("JWT 검증 및 인가 시작");
 
         String path = request.getRequestURI();
+        
+        // 인가 필요없는 요청들 건너뛰기
+        if(path.equals("/") || path.startsWith("/v1/auth/") || path.startsWith("/v1/users/sign-up")){
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         // Access만 허용
         String accessToken = jwtUtil.getAccessTokenFromHeader(request);
@@ -45,7 +51,6 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                 log.error("Token Error");
                 return;
             }
-
 
             Claims info = jwtUtil.getUserInfoFromToken(accessToken);
 
