@@ -39,7 +39,7 @@ public class CustomStoreRepositoryImpl extends QuerydslRepositorySupport impleme
     QCategory qCategory = QCategory.category;
 
     @Override
-    public Page<ResStoreDtoV1> getStorePage(SearchParam searchParam, Pageable pageable) {
+    public Page<ResStoreDtoV1> findStorePage(SearchParam searchParam, Pageable pageable) {
         JPAQuery<Store> query = new JPAQuery<>(getEntityManager());
 
         JPAQuery<ResStoreDtoV1> jpaQuery = query.select(getStoreProjection())
@@ -64,7 +64,8 @@ public class CustomStoreRepositoryImpl extends QuerydslRepositorySupport impleme
             jpaQuery.orderBy(qStore.createdAt.desc());
         }
 
-        JPAQuery<Long> count = query.select(qStore.count())
+        JPAQuery<Long> count = new JPAQuery<>(getEntityManager())
+                                    .select(qStore.count())
                                     .from(qStore)
                                     .where(whereExpression(searchParam), qStore.isPublic.isTrue());
 
@@ -74,7 +75,7 @@ public class CustomStoreRepositoryImpl extends QuerydslRepositorySupport impleme
     }
 
     @Override
-    public Optional<ResStoreDetailDtoV1> getStoreById(UUID storeId) {
+    public Optional<ResStoreDetailDtoV1> findStoreDetailById(UUID storeId) {
         JPAQuery<Store> query = new JPAQuery<>(getEntityManager());
 
         ResStoreDetailDtoV1 response = query.select(getStoreDetailProjection())
@@ -87,7 +88,7 @@ public class CustomStoreRepositoryImpl extends QuerydslRepositorySupport impleme
     }
 
     @Override
-    public Optional<ResStoreDetailDtoV1> getStoreByUserId(Long userId) {
+    public Optional<ResStoreDetailDtoV1> findStoreDetailByUserId(Long userId) {
         JPAQuery<Store> query = new JPAQuery<>(getEntityManager());
 
         ResStoreDetailDtoV1 response = query.select(getStoreDetailProjection())

@@ -52,13 +52,13 @@ public class StoreServiceV1 {
     @Transactional(readOnly = true)
     public Page<ResStoreDtoV1> getStorePage(SearchParam search, Pageable pageable) {
 
-        return storeRepository.getStorePage(search, pageable);
+        return storeRepository.findStorePage(search, pageable);
     }
 
     @Transactional(readOnly = true)
     public ResStoreDetailDtoV1 getStore(UUID storeId) {
 
-        return storeRepository.getStoreById(storeId).orElseThrow(() -> new IllegalArgumentException("해당 가게를 찾을 수 없습니다."));
+        return storeRepository.findStoreDetailById(storeId).orElseThrow(() -> new IllegalArgumentException("해당 가게를 찾을 수 없습니다."));
     }
 
     public ResStoreDetailDtoV1 updateStore(UUID storeId, ReqStoreUpdateDtoV1 request) {
