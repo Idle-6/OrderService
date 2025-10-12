@@ -1,5 +1,6 @@
 package com.sparta.orderservice.user.presentation.dto.request;
 
+import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -22,7 +23,7 @@ public class ReqSignupDtoV1 {
     private String address;
 
     @NotBlank
-    private String role;
+    private String role = UserRoleEnum.USER.getAuthority();
 
     private boolean admin = false;
     private String adminToken = "";

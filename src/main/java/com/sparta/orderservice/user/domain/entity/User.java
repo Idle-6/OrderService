@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Builder
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")
+    @GeneratedValue(strategy = GenerationType.IDENTITY, generator = "user_seq")
     @SequenceGenerator(name = "user_seq", sequenceName = "user_seq", allocationSize = 1) // 1로 두면 매 insert마다 nextval;
     @Column(name = "user_id", updatable = false, nullable = false)
     private Long userId;
@@ -76,13 +76,11 @@ public class User {
 
     public void updateName(String name, Long updatedBy) {
         this.name = name;
-        this.updatedAt = LocalDateTime.now();
         this.updatedBy = updatedBy;
     }
 
     public void updateAddress(String address, Long updatedBy) {
         this.address = address;
-        this.updatedAt = LocalDateTime.now();
         this.updatedBy = updatedBy;
     }
 
