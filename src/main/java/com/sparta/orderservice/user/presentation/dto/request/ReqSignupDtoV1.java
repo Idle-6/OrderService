@@ -22,8 +22,7 @@ public class ReqSignupDtoV1 {
     @NotBlank(message = "주소는 필수 입력 항목입니다.")
     private String address;
 
-    @NotBlank
-    private String role = UserRoleEnum.USER.getAuthority();
+    private String role;
 
     private boolean admin = false;
     private String adminToken = "";
