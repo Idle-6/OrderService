@@ -45,6 +45,8 @@ public class StoreServiceV1 {
                 null
         );
 
+        storeRepository.save(store);
+
         return convertResStoreDetailDto(store);
     }
 
