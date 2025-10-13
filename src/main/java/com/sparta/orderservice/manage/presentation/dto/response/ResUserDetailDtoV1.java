@@ -11,19 +11,18 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ResOrderDetailDto {
-    private String orderId;
-    private String customerId;
-    private String storeId;
-    private String oderMessage;
-    private List<orderMenuDto> orderMenuList;
-    private Integer totalPrice;
-    private String orderStatus;
-
+public class ResUserDetailDtoV1 {
+    private String userId;
+    private String name;
+    private String email;
+    private String address;
+    private String status;
+    private List<orderDtoV1> orderMenuList;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime deleteAt;
+    private LocalDateTime updateAt;
     private String createBy;
-    private String deleteBy;
+    private String updateBy;
+
 }
