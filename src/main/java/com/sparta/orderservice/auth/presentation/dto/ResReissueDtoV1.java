@@ -8,8 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-public class ReqLoginDtoV1 {
-    private String email;
-    private String password;
+public class ResReissueDtoV1 {
+    private boolean refreshRotated;   // RT 회전 여부
+    private String message;
 }
