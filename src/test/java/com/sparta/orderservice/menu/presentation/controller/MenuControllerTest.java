@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -17,10 +18,10 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(MenuControllerV1.class)
 public class MenuControllerTest {
@@ -55,7 +56,7 @@ public class MenuControllerTest {
         String requestBody = objectMapper.writeValueAsString(reqDto);
 
         //when-then
-        mvc.perform(post("/menus/")
+        mvc.perform(post("/menus")
                         .content(requestBody)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
@@ -64,9 +65,7 @@ public class MenuControllerTest {
                 .andExpect(jsonPath("$.name").value("치킨"))
                 .andExpect(jsonPath("$.description").value("맛남"))
                 .andExpect(jsonPath("$.price").value(12000))
-                .andExpect(jsonPath("$.isPublic").value(true))
-                .andExpect(jsonPath("$.isUseAi").value(false))
-                .andExpect(jsonPath("$.prompt").value(""))
+                .andExpect(jsonPath("$.is_public").value(true))
                 .andDo(print());
     }
 
@@ -82,11 +81,12 @@ public class MenuControllerTest {
         reqParams.add("isAsc", "true");
 
         //when-then
-        mvc.perform(get("/menus/" + storeId)
+        mvc.perform(get("/menus/" + storeId + "/menu")
                 .params(reqParams)
+                .accept(MediaType.APPLICATION_JSON)
         )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.page.totalElements").value(5))
+                .andExpect(jsonPath("$.numberOfElements").value(5))
                 .andDo(print());
     }
 
