@@ -2,6 +2,9 @@ package com.sparta.orderservice.category.application.service;
 
 import com.sparta.orderservice.category.domain.entity.Category;
 import com.sparta.orderservice.category.domain.repository.CategoryRepository;
+import com.sparta.orderservice.category.presentation.advice.CategoryErrorCode;
+import com.sparta.orderservice.category.presentation.advice.CategoryException;
+import com.sparta.orderservice.category.presentation.advice.CategoryExceptionLogUtils;
 import com.sparta.orderservice.category.presentation.dto.request.ReqCategoryDtoV1;
 import com.sparta.orderservice.category.presentation.dto.request.ReqCategoryUpdateDtoV1;
 import com.sparta.orderservice.category.presentation.dto.response.ResCategoryDtoV1;
@@ -48,7 +51,11 @@ public class CategoryServiceV1 {
 
     @Transactional(readOnly = true)
     public ResCategoryDtoV1 getCategory(UUID categoryId) {
-        Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을 수 없습니다."));
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new CategoryException(
+                        CategoryErrorCode.CATEGORY_NOT_FOUND,
+                        CategoryExceptionLogUtils.getNotFoundMessage(categoryId, null)
+                ));
 
         return convertResCategoryDto(category);
     }
@@ -57,7 +64,11 @@ public class CategoryServiceV1 {
 
         checkCategoryNameDuplication(request.getName());
 
-        Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을 수 없습니다."));
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new CategoryException(
+                        CategoryErrorCode.CATEGORY_NOT_FOUND,
+                        CategoryExceptionLogUtils.getNotFoundMessage(categoryId, null)
+                ));
 
         // todo: 수정필요
         category.update(request.getName(), null);
@@ -66,7 +77,11 @@ public class CategoryServiceV1 {
     }
 
     public void deleteCategory(UUID categoryId) {
-        Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을 수 없습니다."));
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new CategoryException(
+                        CategoryErrorCode.CATEGORY_NOT_FOUND,
+                        CategoryExceptionLogUtils.getNotFoundMessage(categoryId, null)
+                ));
 
         // todo: 수정필요
         category.delete(null);
@@ -78,7 +93,10 @@ public class CategoryServiceV1 {
 
     private void checkCategoryNameDuplication(String name) {
         if(categoryRepository.existsByName(name)) {
-            throw new IllegalArgumentException("이미 존재하는 카테고리 입니다.");
+            throw new CategoryException(
+                    CategoryErrorCode.CATEGORY_CONFLICT,
+                    CategoryExceptionLogUtils.getConflictMessage(name, null)
+            );
         }
     }
 
