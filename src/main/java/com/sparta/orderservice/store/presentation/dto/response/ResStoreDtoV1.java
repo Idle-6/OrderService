@@ -1,6 +1,6 @@
 package com.sparta.orderservice.store.presentation.dto.response;
 
-import lombok.AllArgsConstructor;
+import com.querydsl.core.annotations.QueryProjection;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -10,16 +10,13 @@ import java.util.UUID;
 
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
 public class ResStoreDtoV1 {
 
     private UUID storeId;
 
-    private UUID categoryId;
+    private String categoryName;
 
     private String name;
-
-    private String bizRegNo;
 
     private String contact;
 
@@ -31,6 +28,16 @@ public class ResStoreDtoV1 {
 
     private BigDecimal averageRating;
 
-    private LocalDateTime createdAt;
 
+    @QueryProjection
+    public ResStoreDtoV1(UUID storeId, String categoryName, String name, String contact, String address, String description, Long reviewCount, BigDecimal averageRating) {
+        this.storeId = storeId;
+        this.categoryName = categoryName;
+        this.name = name;
+        this.contact = contact;
+        this.address = address;
+        this.description = description;
+        this.reviewCount = reviewCount;
+        this.averageRating = averageRating;
+    }
 }
