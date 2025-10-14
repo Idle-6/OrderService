@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/menus")
+@RequestMapping("/v1/menus")
 public class MenuControllerV1 {
 
     @PostMapping("")
@@ -34,9 +34,9 @@ public class MenuControllerV1 {
         );
     }
 
-    @GetMapping("/{storeId}/menu")
+    @GetMapping("")
     public ResponseEntity<Page<ResMenuGetByStoreIdDtoV1>> getMenuListByStoreId(
-            @PathVariable UUID storeId,
+            @RequestParam UUID storeId,
             @RequestParam("page") int page,
             @RequestParam("size") int size,
             @RequestParam("sortBy") String sortBy,

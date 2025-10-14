@@ -56,7 +56,7 @@ public class MenuControllerTest {
         String requestBody = objectMapper.writeValueAsString(reqDto);
 
         //when-then
-        mvc.perform(post("/menus")
+        mvc.perform(post("/v1/menus")
                         .content(requestBody)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
@@ -70,18 +70,19 @@ public class MenuControllerTest {
     }
 
     @Test
-    @DisplayName("메뉴 조회")
+    @DisplayName("메뉴 리스트 조회")
     public void testGetMenuListByStoreId() throws Exception {
         //build
         UUID storeId = UUID.randomUUID();
         MultiValueMap<String, String> reqParams = new LinkedMultiValueMap<>();
+        reqParams.add("storeId", storeId.toString());
         reqParams.add("page", "1");
         reqParams.add("size", "10");
         reqParams.add("sortBy", "createdAt");
         reqParams.add("isAsc", "true");
 
         //when-then
-        mvc.perform(get("/menus/" + storeId + "/menu")
+        mvc.perform(get("/v1/menus")
                 .params(reqParams)
                 .accept(MediaType.APPLICATION_JSON)
         )
@@ -91,13 +92,13 @@ public class MenuControllerTest {
     }
 
     @Test
-    @DisplayName("메뉴 상세")
+    @DisplayName("메뉴 상세 조회")
     public void testGetMenuById() throws Exception {
         //build
         UUID menuId = UUID.randomUUID();
 
         //when-then
-        mvc.perform(get("/menus/" + menuId))
+        mvc.perform(get("/v1/menus/" + menuId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(menuId.toString()))
                 .andDo(print());
@@ -116,7 +117,7 @@ public class MenuControllerTest {
                 .build();
 
         //when-then
-        mvc.perform(patch("/menus/" + menuId)
+        mvc.perform(patch("/v1/menus/" + menuId)
                         .content(objectMapper.writeValueAsString(reqDto))
                         .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -131,7 +132,7 @@ public class MenuControllerTest {
         UUID menuId = UUID.randomUUID();
 
         //when-then
-        mvc.perform(delete("/menus/" + menuId))
+        mvc.perform(delete("/v1/menus/" + menuId))
                 .andExpect(status().isOk())
                 .andDo(print());
     }
