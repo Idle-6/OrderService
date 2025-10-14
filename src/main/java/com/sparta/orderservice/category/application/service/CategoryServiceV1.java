@@ -8,6 +8,7 @@ import com.sparta.orderservice.category.presentation.advice.CategoryExceptionLog
 import com.sparta.orderservice.category.presentation.dto.request.ReqCategoryDtoV1;
 import com.sparta.orderservice.category.presentation.dto.request.ReqCategoryUpdateDtoV1;
 import com.sparta.orderservice.category.presentation.dto.response.ResCategoryDtoV1;
+import com.sparta.orderservice.user.infrastructure.UserThreadLocal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,14 +23,14 @@ import java.util.UUID;
 public class CategoryServiceV1 {
 
     private final CategoryRepository categoryRepository;
+    private final Long USER_ID = UserThreadLocal.getUserId();
 
     public ResCategoryDtoV1 createCategory(ReqCategoryDtoV1 request) {
 
         // 카테고리 존재 여부
         checkCategoryNameDuplication(request.getName());
 
-        // todo: 수정필요
-        Category category = Category.ofNewCategory(request.getName(), null);
+        Category category = Category.ofNewCategory(request.getName(), USER_ID);
 
         categoryRepository.save(category);
 
@@ -70,8 +71,7 @@ public class CategoryServiceV1 {
                         CategoryExceptionLogUtils.getNotFoundMessage(categoryId, null)
                 ));
 
-        // todo: 수정필요
-        category.update(request.getName(), null);
+        category.update(request.getName(), USER_ID);
 
         return convertResCategoryDto(category);
     }
@@ -83,8 +83,7 @@ public class CategoryServiceV1 {
                         CategoryExceptionLogUtils.getNotFoundMessage(categoryId, null)
                 ));
 
-        // todo: 수정필요
-        category.delete(null);
+        category.delete(USER_ID);
     }
 
     private ResCategoryDtoV1 convertResCategoryDto(Category category) {
