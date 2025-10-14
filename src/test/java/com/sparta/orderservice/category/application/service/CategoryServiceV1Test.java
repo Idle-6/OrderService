@@ -2,9 +2,9 @@ package com.sparta.orderservice.category.application.service;
 
 import com.sparta.orderservice.category.domain.entity.Category;
 import com.sparta.orderservice.category.domain.repository.CategoryRepository;
+import com.sparta.orderservice.category.presentation.advice.CategoryException;
 import com.sparta.orderservice.category.presentation.dto.request.ReqCategoryDtoV1;
 import com.sparta.orderservice.category.presentation.dto.request.ReqCategoryUpdateDtoV1;
-import com.sparta.orderservice.category.presentation.dto.response.ResCategoryDtoV1;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -59,7 +59,7 @@ class CategoryServiceV1Test {
         ReqCategoryDtoV1 request = new ReqCategoryDtoV1("중식");
         when(categoryRepository.existsByName(request.getName())).thenReturn(true);
 
-        assertThrows(IllegalArgumentException.class, () ->
+        assertThrows(CategoryException.class, () ->
                 categoryService.createCategory(request)
         );
 
@@ -92,7 +92,7 @@ class CategoryServiceV1Test {
     void getCategory_not_found() {
         when(categoryRepository.findById(Mockito.any())).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () ->
+        assertThrows(CategoryException.class, () ->
                 categoryService.getCategory(categoryId)
         );
 
@@ -116,7 +116,7 @@ class CategoryServiceV1Test {
         ReqCategoryUpdateDtoV1 request = new ReqCategoryUpdateDtoV1("양식");
         when(categoryRepository.findById(Mockito.any())).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () ->
+        assertThrows(CategoryException.class, () ->
             categoryService.updateCategory(categoryId, request)
         );
 
@@ -128,7 +128,7 @@ class CategoryServiceV1Test {
         ReqCategoryUpdateDtoV1 request = new ReqCategoryUpdateDtoV1("양식");
         when(categoryRepository.existsByName(request.getName())).thenReturn(true);
 
-        assertThrows(IllegalArgumentException.class, () ->
+        assertThrows(CategoryException.class, () ->
             categoryService.updateCategory(categoryId, request)
         );
 
