@@ -15,8 +15,8 @@ import java.util.UUID;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "menu")
-@Table(name = "menu")
+@Entity(name = "p_menu")
+@Table(name = "p_menu")
 public class MenuEntity extends BaseEntity {
 
     @Id
