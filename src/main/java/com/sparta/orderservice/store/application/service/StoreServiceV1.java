@@ -2,8 +2,14 @@ package com.sparta.orderservice.store.application.service;
 
 import com.sparta.orderservice.category.domain.entity.Category;
 import com.sparta.orderservice.category.domain.repository.CategoryRepository;
+import com.sparta.orderservice.category.presentation.advice.CategoryErrorCode;
+import com.sparta.orderservice.category.presentation.advice.CategoryException;
+import com.sparta.orderservice.category.presentation.advice.CategoryExceptionLogUtils;
 import com.sparta.orderservice.store.domain.entity.Store;
 import com.sparta.orderservice.store.domain.repository.StoreRepository;
+import com.sparta.orderservice.store.presentation.advice.StoreErrorCode;
+import com.sparta.orderservice.store.presentation.advice.StoreException;
+import com.sparta.orderservice.store.presentation.advice.StoreExceptionLogUtils;
 import com.sparta.orderservice.store.presentation.dto.SearchParam;
 import com.sparta.orderservice.store.presentation.dto.request.ReqStoreDtoV1;
 import com.sparta.orderservice.store.presentation.dto.request.ReqStoreUpdateDtoV1;
@@ -32,7 +38,10 @@ public class StoreServiceV1 {
 
 
         Category category = categoryRepository.findById(request.getCategoryId())
-                                                .orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CategoryException(
+                        CategoryErrorCode.CATEGORY_NOT_FOUND,
+                        CategoryExceptionLogUtils.getNotFoundMessage(request.getCategoryId(), null)
+                ));
 
         // todo: 수정 필요
         Store store = Store.ofNewStore(request.getName(),
@@ -44,8 +53,6 @@ public class StoreServiceV1 {
                 category,
                 null
         );
-
-        storeRepository.save(store);
 
         return convertResStoreDetailDto(store);
     }
@@ -60,17 +67,27 @@ public class StoreServiceV1 {
     @Transactional(readOnly = true)
     public ResStoreDetailDtoV1 getStore(UUID storeId) {
 
-        return storeRepository.findStoreDetailById(storeId).orElseThrow(() -> new IllegalArgumentException("해당 가게를 찾을 수 없습니다."));
+        return storeRepository.findStoreDetailById(storeId)
+                .orElseThrow(() -> new StoreException(
+                        StoreErrorCode.STORE_NOT_FOUND,
+                        StoreExceptionLogUtils.getNotFoundMessage(storeId, null)
+                ));
     }
 
     public ResStoreDetailDtoV1 updateStore(UUID storeId, ReqStoreUpdateDtoV1 request) {
 
         Store store = storeRepository.findById(storeId)
-                                        .orElseThrow(() -> new IllegalArgumentException("해당 가게를 찾을 수 없습니다."));
+                .orElseThrow(() -> new StoreException(
+                        StoreErrorCode.STORE_NOT_FOUND,
+                        StoreExceptionLogUtils.getNotFoundMessage(storeId, null)
+                ));
         Category newCategory = null;
         if (request.getCategoryId() != null) {
             newCategory = categoryRepository.findById(request.getCategoryId())
-                    .orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을 수 없습니다."));
+                    .orElseThrow(() -> new CategoryException(
+                            CategoryErrorCode.CATEGORY_NOT_FOUND,
+                            CategoryExceptionLogUtils.getNotFoundMessage(request.getCategoryId(), null)
+                    ));
         }
 
         // todo: 수정필요
@@ -79,13 +96,30 @@ public class StoreServiceV1 {
     }
 
     public void deleteStore(UUID storeId) {
-        Store store = storeRepository.findById(storeId).orElseThrow(() -> new IllegalArgumentException("해당 가게를 찾을 수 없습니다."));
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new StoreException(
+                        StoreErrorCode.STORE_NOT_FOUND,
+                        StoreExceptionLogUtils.getNotFoundMessage(storeId, null)
+                ));
 
         // todo: 수정필요
         store.delete(null);
     }
 
     private ResStoreDetailDtoV1 convertResStoreDetailDto(Store store) {
-        return new ResStoreDetailDtoV1(store.getStoreId(), store.getCategory().getName(), store.getName(), store.getBizRegNo(), store.getContact(), store.getAddress(), store.getDescription(), store.isPublic(), store.getReviewCount(), store.getAverageRating(), store.getCreatedAt(), store.getUpdatedAt());
+        return new ResStoreDetailDtoV1(
+                store.getStoreId(),
+                store.getCategory().getName(),
+                store.getName(),
+                store.getBizRegNo(),
+                store.getContact(),
+                store.getAddress(),
+                store.getDescription(),
+                store.isPublic(),
+                store.getReviewCount(),
+                store.getAverageRating(),
+                store.getCreatedAt(),
+                store.getUpdatedAt()
+        );
     }
 }

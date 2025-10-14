@@ -2,8 +2,10 @@ package com.sparta.orderservice.store.application.service;
 
 import com.sparta.orderservice.category.domain.entity.Category;
 import com.sparta.orderservice.category.domain.repository.CategoryRepository;
+import com.sparta.orderservice.category.presentation.advice.CategoryException;
 import com.sparta.orderservice.store.domain.entity.Store;
 import com.sparta.orderservice.store.domain.repository.StoreRepository;
+import com.sparta.orderservice.store.presentation.advice.StoreException;
 import com.sparta.orderservice.store.presentation.dto.SearchParam;
 import com.sparta.orderservice.store.presentation.dto.request.ReqStoreDtoV1;
 import com.sparta.orderservice.store.presentation.dto.request.ReqStoreUpdateDtoV1;
@@ -108,7 +110,7 @@ class StoreServiceV1Test {
     void getStore_not_found() {
         when(storeRepository.findStoreDetailById(Mockito.any())).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> storeServiceV1.getStore(storeId));
+        assertThrows(StoreException.class, () -> storeServiceV1.getStore(storeId));
 
         verify(storeRepository, Mockito.times(1)).findStoreDetailById(Mockito.any());
     }
@@ -129,7 +131,7 @@ class StoreServiceV1Test {
     void updateStore_not_found() {
         when(storeRepository.findById(Mockito.any())).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(StoreException.class, () -> {
             ReqStoreUpdateDtoV1 request = new ReqStoreUpdateDtoV1(null, "가게2", null, null, null, null, true);
             storeServiceV1.updateStore(storeId, request);
         });
@@ -156,8 +158,7 @@ class StoreServiceV1Test {
         when(storeRepository.findById(Mockito.any())).thenReturn(Optional.of(store));
         when(categoryRepository.findById(Mockito.any())).thenReturn(Optional.empty());
 
-
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(CategoryException.class, () -> {
             ReqStoreUpdateDtoV1 request = new ReqStoreUpdateDtoV1(UUID.randomUUID(), "가게2", null, null, null, null, true);
             storeServiceV1.updateStore(storeId, request);
         });
