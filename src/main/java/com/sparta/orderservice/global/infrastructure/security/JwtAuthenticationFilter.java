@@ -6,6 +6,7 @@ import com.sparta.orderservice.auth.infrastructure.util.JwtProperties;
 import com.sparta.orderservice.auth.infrastructure.util.JwtUtil;
 import com.sparta.orderservice.auth.presentation.dto.ReqLoginDtoV1;
 import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
+import com.sparta.orderservice.user.infrastructure.UserThreadLocal;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -62,6 +63,8 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         Long userId = ((UserDetailsImpl) authResult.getPrincipal()).getUser().getUserId();
         String email = ((UserDetailsImpl) authResult.getPrincipal()).getUsername();
         UserRoleEnum role = ((UserDetailsImpl) authResult.getPrincipal()).getUser().getRole();
+
+        UserThreadLocal.setUserId(userId);
 
         String accessToken = jwtUtil.createAccessToken(email, userId, role);
         String refreshToken = jwtUtil.createRefreshToken(email, userId);
