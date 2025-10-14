@@ -96,7 +96,7 @@ class StoreRepositoryTest {
     @Test
     @DisplayName("가게 리스트 조회 - 전체")
     void findStorePage() {
-        SearchParam searchParam = new SearchParam(null, null);
+        SearchParam searchParam = new SearchParam();
         Page<ResStoreDtoV1> response = storeRepository.findStorePage(searchParam, Pageable.ofSize(5));
 
         assertFalse(response.isEmpty());
