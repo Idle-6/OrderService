@@ -14,6 +14,7 @@ import com.sparta.orderservice.store.presentation.dto.response.QResStoreDetailDt
 import com.sparta.orderservice.store.presentation.dto.response.QResStoreDtoV1;
 import com.sparta.orderservice.store.presentation.dto.response.ResStoreDetailDtoV1;
 import com.sparta.orderservice.store.presentation.dto.response.ResStoreDtoV1;
+import com.sparta.orderservice.user.domain.entity.QUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -37,6 +38,7 @@ public class CustomStoreRepositoryImpl extends QuerydslRepositorySupport impleme
 
     QStore qStore = QStore.store;
     QCategory qCategory = QCategory.category;
+    QUser qUser = QUser.user;
 
     @Override
     public Page<ResStoreDtoV1> findStorePage(SearchParam searchParam, Pageable pageable) {
@@ -97,6 +99,18 @@ public class CustomStoreRepositoryImpl extends QuerydslRepositorySupport impleme
                 .where(qStore.createdBy.userId.eq(userId))
                 .fetchOne();
         return Optional.ofNullable(response);
+    }
+
+    @Override
+    public boolean existsStoreByUserId(Long userId) {
+        JPAQuery<Store> query = new JPAQuery<>(getEntityManager());
+
+        Long exist = query.select(qStore.count())
+                .from(qStore)
+                .join(qUser).on(qStore.createdBy.eq(qUser))
+                .where(qUser.userId.eq(userId))
+                .fetchOne();
+        return exist != null && exist  > 0;
     }
 
     private BooleanBuilder whereExpression(SearchParam searchParam) {
