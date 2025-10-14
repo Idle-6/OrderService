@@ -1,6 +1,5 @@
 package com.sparta.orderservice.auth.presentation.dto;
 
-import com.sparta.orderservice.user.domain.UserEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
