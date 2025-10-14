@@ -29,8 +29,11 @@ public class MenuEntity extends BaseEntity {
 
     private int price;
 
-    @Column(name="is_public")
+    @Column(name="is_public", nullable = false)
     private boolean isPublic;
+
+    @Column(name="store_id", nullable = false)
+    private UUID storeId;
 
 //    @ManyToOne
 //    @Column(name = "store_id")
