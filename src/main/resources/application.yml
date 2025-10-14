@@ -4,9 +4,9 @@ server:
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/order
-    username:
-    password:
+    url: jdbc:postgresql://localhost:5432/orders
+    username: postgres
+    password: 2020775057
 
   jpa:
     hibernate:
@@ -25,7 +25,8 @@ spring:
         one-indexed-parameters: true
 
 jwt:
-  secret:
-    key: a0df1b20ad4c7f202a9ebc50645ab57b584e247df9c4c939
+  secret-key: a0df1b20ad4c7f202a9ebc50645ab57b584e247df9c4c939
   access-token-time: 1800000  # 30분
+#  access-token-time: 5000  # 5초 (테스트용)
   refresh-token-time: 1209600000 # 14일
+  rt-rotate-time: 259200000 # 3일
