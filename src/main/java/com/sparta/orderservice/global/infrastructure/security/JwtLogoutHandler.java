@@ -1,16 +1,12 @@
 package com.sparta.orderservice.global.infrastructure.security;
 
 import com.sparta.orderservice.auth.infrastructure.util.JwtUtil;
-import com.sparta.orderservice.auth.infrastructure.util.TokenBlacklistMemoryStore;
-import com.sparta.orderservice.user.domain.entity.User;
-import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
 import com.sparta.orderservice.user.domain.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 

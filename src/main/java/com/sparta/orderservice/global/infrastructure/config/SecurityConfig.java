@@ -1,7 +1,6 @@
 package com.sparta.orderservice.global.infrastructure.config;
 
 import com.sparta.orderservice.auth.infrastructure.util.JwtUtil;
-import com.sparta.orderservice.auth.infrastructure.util.TokenBlacklistMemoryStore;
 import com.sparta.orderservice.global.infrastructure.security.JwtAuthenticationFilter;
 import com.sparta.orderservice.global.infrastructure.security.JwtAuthorizationFilter;
 import com.sparta.orderservice.global.infrastructure.security.JwtLogoutHandler;

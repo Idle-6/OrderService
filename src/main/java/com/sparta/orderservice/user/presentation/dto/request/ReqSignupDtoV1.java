@@ -1,6 +1,5 @@
 package com.sparta.orderservice.user.presentation.dto.request;
 
-import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
