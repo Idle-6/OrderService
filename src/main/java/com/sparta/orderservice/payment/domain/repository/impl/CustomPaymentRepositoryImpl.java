@@ -1,0 +1,79 @@
+package com.sparta.orderservice.payment.domain.repository.impl;
+
+import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.sparta.orderservice.order.domain.entity.QOrder;
+import com.sparta.orderservice.payment.domain.entity.QPayment;
+import com.sparta.orderservice.payment.domain.repository.CustomPaymentRepository;
+import com.sparta.orderservice.payment.presentation.dto.response.QResPaymentDtoV1;
+import com.sparta.orderservice.payment.presentation.dto.response.QResPaymentSummaryDtoV1;
+import com.sparta.orderservice.payment.presentation.dto.response.ResPaymentDtoV1;
+import com.sparta.orderservice.payment.presentation.dto.response.ResPaymentSummaryDtoV1;
+import com.sparta.orderservice.user.domain.entity.QUser;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+@RequiredArgsConstructor
+public class CustomPaymentRepositoryImpl implements CustomPaymentRepository {
+
+    private final JPAQueryFactory query;
+
+    QPayment qPayment = QPayment.payment;
+    QOrder qOrder = QOrder.order;
+    QUser qUser = QUser.user;
+
+    @Override
+    public Page<ResPaymentSummaryDtoV1> findPaymentListByUserId(Long userId, Pageable pageable) {
+        List<ResPaymentSummaryDtoV1> resultList = query.select(
+                new QResPaymentSummaryDtoV1(
+                    qPayment.paymentId,
+                    qPayment.amount,
+                    qPayment.status,
+                    qPayment.createdAt
+                ))
+                .from(qPayment)
+                .leftJoin(qOrder).on(qPayment.order.eq(qOrder))
+                .leftJoin(qUser).on(qPayment.user.eq(qUser))
+                .where(qUser.userId.eq(userId))
+                .fetch();
+
+        JPAQuery<Long> count = query.select(qPayment.count())
+                .from(qPayment)
+                .leftJoin(qOrder).on(qPayment.order.eq(qOrder))
+                .leftJoin(qUser).on(qPayment.user.eq(qUser))
+                .where(qUser.userId.eq(userId));
+
+        return PageableExecutionUtils.getPage(resultList, pageable, count::fetchOne);
+    }
+
+    @Override
+    public Optional<ResPaymentDtoV1> findPaymentByUserId(UUID paymentId, Long userId) {
+        ResPaymentDtoV1 result = query.select(
+                new QResPaymentDtoV1(
+                        qPayment.paymentId,
+                        qPayment.order.orderId,
+                        qPayment.amount,
+                        qPayment.method.stringValue(),
+                        qPayment.user.name,
+                        qPayment.status.stringValue(),
+                        qPayment.createdAt,
+                        qPayment.updatedAt,
+                        qPayment.deletedAt
+
+                ))
+                .from(qPayment)
+                .leftJoin(qOrder).on(qPayment.order.eq(qOrder))
+                .leftJoin(qUser).on(qPayment.user.eq(qUser))
+                .where(qUser.userId.eq(userId), qPayment.paymentId.eq(paymentId))
+                .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+
+}
