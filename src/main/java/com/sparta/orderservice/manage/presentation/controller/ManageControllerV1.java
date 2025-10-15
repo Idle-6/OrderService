@@ -1,5 +1,6 @@
 package com.sparta.orderservice.manage.presentation.controller;
 
+import com.sparta.orderservice.manage.application.service.ManageServiceV1;
 import com.sparta.orderservice.manage.presentation.dto.response.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,7 +16,7 @@ import java.util.List;
 @RequestMapping("/v1/manages")
 public class ManageControllerV1 {
 
-    // private final ManageServise manageService;
+     private final ManageServiceV1 manageService;
 
     /* 회원 조회 */
     @GetMapping("/users")
@@ -26,10 +27,7 @@ public class ManageControllerV1 {
             @RequestParam(required = false, defaultValue = "id") String sortBy,
             @RequestParam(required = false, defaultValue = "true") boolean isAsc
     ){
-        List<ResUserDtoV1> userDtoList = new ArrayList<>();
-
-        userDtoList.add(new ResUserDtoV1("123", "배추도사", "beachoo@naver.com", "서울특별시", "활성화"));
-        userDtoList.add(new ResUserDtoV1("456", "무도사", "moo@naver.com","광주광역시","비활성화"));
+        List<ResUserDtoV1> userDtoList = manageService.getUserList(search, page, pageSize, sortBy, isAsc);
         return ResponseEntity.ok(userDtoList);
     }
 
@@ -38,22 +36,7 @@ public class ManageControllerV1 {
     public ResponseEntity<ResUserDetailDtoV1> getUser(
             @PathVariable Integer userId
     ){
-        ResUserDetailDtoV1 userDetailDto = ResUserDetailDtoV1.builder()
-                .userId(userId.toString())
-                .name("홍길동")
-                .email("hong@test.com")
-                .address("서울특별시 강남구")
-                .status("활성화")
-                .orderMenuList(List.of(
-                        new orderDtoV1("123"),
-                        new orderDtoV1("456")
-                ))
-                .createdAt(LocalDateTime.now().minusDays(10))
-                .updateAt(LocalDateTime.now())
-                .createBy("admin")
-                .updateBy("manager")
-                .build();
-
+        ResUserDetailDtoV1 userDetailDto = manageService.getUser(userId);
         return ResponseEntity.ok(userDetailDto);
     }
 
@@ -63,9 +46,8 @@ public class ManageControllerV1 {
     public ResponseEntity<?> userDeactive(
             @PathVariable Integer userId
     ){
-//        manageService.userDeactive();
-//        return ResponseEntity.ok("회원 비활성화 완료");
-        return new ResponseEntity<>(HttpStatus.OK);
+        manageService.userDeactive(userId);
+        return ResponseEntity.ok("회원 비활성화 완료");
     }
 
     /* 회원 활성화 */
@@ -73,9 +55,8 @@ public class ManageControllerV1 {
     public ResponseEntity<?> userActive(
             @PathVariable Integer userId
     ){
-//        manageService.userActive();
-//        return ResponseEntity.ok("회원 활성화 완료");
-        return new ResponseEntity<>(HttpStatus.OK);
+        manageService.userActive(userId);
+        return ResponseEntity.ok("회원 활성화 완료");
     }
 
     /* 가게 조회 */
@@ -87,11 +68,7 @@ public class ManageControllerV1 {
             @RequestParam(required = false, defaultValue = "id") String sortBy,
             @RequestParam(required = false, defaultValue = "true") boolean isAsc){
 
-        List<ResStoreDtoV1> storeDtoList = new ArrayList<>();
-
-        storeDtoList.add(new ResStoreDtoV1("S001", "맛집1", "한식", "서울시 종로구", "활성화"));
-        storeDtoList.add(new ResStoreDtoV1("S002", "맛집2", "중식", "서울시 강남구", "비활성화"));
-
+        List<ResStoreDtoV1> storeDtoList = manageService.getStoreList(search, page, pageSize, sortBy, isAsc);
         return ResponseEntity.ok(storeDtoList);
     }
 
@@ -100,20 +77,7 @@ public class ManageControllerV1 {
     public ResponseEntity<ResStoreDetailDtoV1> getStore(
             @PathVariable Integer storeId
     ){
-        ResStoreDetailDtoV1 storeDetail = ResStoreDetailDtoV1.builder()
-                .storeId(storeId.toString())
-                .storeName("홍길동네식당")
-                .category("한식")
-                .contact("010-1234-5678")
-                .address("서울특별시 마포구")
-                .description("든든한 한식 메뉴 제공")
-                .status("활성화")
-                .createdAt(LocalDateTime.now().minusDays(5))
-                .updateAt(LocalDateTime.now())
-                .createBy("admin")
-                .updateBy("owner1")
-                .build();
-
+        ResStoreDetailDtoV1 storeDetail = manageService.getStore(storeId);
         return ResponseEntity.ok(storeDetail);
     }
 
@@ -122,9 +86,8 @@ public class ManageControllerV1 {
     public ResponseEntity<?> storeDeactive(
             @PathVariable Integer storeId
     ){
-//        manageService.storeDeactive();
-//        return ResponseEntity.ok("가게 비활성화 완료");
-        return new ResponseEntity<>(HttpStatus.OK);
+        manageService.storeDeactive(storeId);
+        return ResponseEntity.ok("가게 비활성화 완료");
     }
 
     /* 가게 활성화 */
@@ -132,9 +95,8 @@ public class ManageControllerV1 {
     public ResponseEntity<?> storeActive(
             @PathVariable Integer storeId
     ){
-//        manageService.storeActive();
-//        return ResponseEntity.ok("가게 활성화 완료");
-        return new ResponseEntity<>(HttpStatus.OK);
+        manageService.storeActive(storeId);
+        return ResponseEntity.ok("가게 활성화 완료");
     }
 
     /* 주문 리스트 조회 */
@@ -146,28 +108,7 @@ public class ManageControllerV1 {
             @RequestParam(required = false, defaultValue = "id") String sortBy,
             @RequestParam(required = false, defaultValue = "true") boolean isAsc
     ){
-        List<ResOrderDtoV1> orderDtoList = new ArrayList<>();
-
-        orderDtoList.add(ResOrderDtoV1.builder()
-                .orderId("O1001")
-                .customerId("123")
-                .storeId("S001")
-                .totalPrice(25000)
-                .orderStatus("주문완료")
-                .createdAt(LocalDateTime.now().minusDays(1))
-                .build()
-        );
-
-        orderDtoList.add(ResOrderDtoV1.builder()
-                .orderId("O1002")
-                .customerId("456")
-                .storeId("S002")
-                .totalPrice(18000)
-                .orderStatus("배송중")
-                .createdAt(LocalDateTime.now().minusHours(10))
-                .build()
-        );
-
+        List<ResOrderDtoV1> orderDtoList = manageService.getOrderList(search, page, pageSize, sortBy, isAsc);
         return ResponseEntity.ok(orderDtoList);
     }
 
@@ -176,23 +117,7 @@ public class ManageControllerV1 {
     public ResponseEntity<ResOrderDetailDtoV1> getOrder(
             @PathVariable Integer orderId
     ){
-        ResOrderDetailDtoV1 orderDetail = ResOrderDetailDtoV1.builder()
-                .orderId(orderId.toString())
-                .customerId("123")
-                .storeId("S001")
-                .oderMessage("문 앞에 두고 가주세요")
-                .orderMenuList(List.of(
-                        new orderMenuDtoV1("1001", "김치찌개", 2, 18000),
-                        new orderMenuDtoV1("1002", "된장찌개", 1, 8000)
-                ))
-                .totalPrice(26000)
-                .orderStatus("주문완료")
-                .createdAt(LocalDateTime.now().minusDays(2))
-                .deleteAt(null)
-                .createBy("user1")
-                .deleteBy(null)
-                .build();
-
+        ResOrderDetailDtoV1 orderDetail = manageService.getOrder(orderId);
         return ResponseEntity.ok(orderDetail);
     }
 }
