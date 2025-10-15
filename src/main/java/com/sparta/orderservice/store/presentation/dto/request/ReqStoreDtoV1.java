@@ -1,15 +1,21 @@
 package com.sparta.orderservice.store.presentation.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReqStoreDtoV1 {
+
+    @NotNull(message = "카테고리는 필수 항목입니다.")
+    private UUID categoryId;
 
     @NotBlank(message = "가게명은 필수 입력 항목입니다.")
     private String name;
