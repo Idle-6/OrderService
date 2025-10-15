@@ -12,10 +12,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -64,6 +67,7 @@ public class UserServiceV1 {
         return userRepository.save(user);
     }
 
+
     public User updateUser(Long userId, ReqUserUpdateDtoV1 requestDto) {
         User user = findById(userId);
 
@@ -93,14 +97,13 @@ public class UserServiceV1 {
 
     public void deleteUser(HttpServletRequest request, HttpServletResponse response, Long userId) {
         User user = findById(userId);
-        
+
         if(!user.isActive()){
             throw new IllegalStateException("이미 탈퇴한 사용자입니다.");
         }
 
         user.deactive(user.getUserId());
         jwtUtil.expireRefreshCookie(response);
-        tokenBlacklistMemoryStore.addBlacklist(user.getUserId(), jwtUtil.getExpiredTimeFromHeader(request));
     }
 
     @Transactional(readOnly = true)

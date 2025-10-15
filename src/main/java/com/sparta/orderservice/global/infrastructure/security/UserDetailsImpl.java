@@ -44,6 +44,8 @@ public class UserDetailsImpl implements UserDetails {
 
         return authorities;
     }
+
+    public Long getTokenExpiredAt() {return user.getTokenExpiredAt(); }
     
     @Override
     public boolean isAccountNonExpired() {
