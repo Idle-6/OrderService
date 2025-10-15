@@ -1,8 +1,11 @@
 package com.sparta.orderservice.auth.application.service;
 
 import com.sparta.orderservice.auth.infrastructure.util.JwtUtil;
+import com.sparta.orderservice.auth.presentation.advice.AuthErrorCode;
+import com.sparta.orderservice.auth.presentation.advice.AuthException;
 import com.sparta.orderservice.auth.presentation.dto.ResReissueDtoV1;
 import com.sparta.orderservice.global.infrastructure.security.UserDetailsServiceImpl;
+import com.sparta.orderservice.global.presentation.advice.handler.GlobalExceptionHandler;
 import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
 import io.jsonwebtoken.Claims;
 import jakarta.mail.MessagingException;
@@ -41,13 +44,9 @@ public class AuthServiceV1 {
 
     public ResReissueDtoV1 reissue(String refreshToken, HttpServletResponse response) {
         if (refreshToken == null || refreshToken.isBlank())
-            throw new BadCredentialsException("NO_REFRESH_TOKEN");
+            throw new AuthException(AuthErrorCode.AUTH_NO_REFRESH_TOKEN);
 
-        try {
-            jwtUtil.validateToken(refreshToken, false);
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
+        jwtUtil.validateToken(refreshToken, false);
 
         Claims info = jwtUtil.getUserInfoFromToken(refreshToken);
         Date exp = info.getExpiration();
