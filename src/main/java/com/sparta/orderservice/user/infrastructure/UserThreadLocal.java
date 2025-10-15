@@ -15,7 +15,7 @@ public class UserThreadLocal {
         userThreadLocal.set(userId);
     }
 
-    public static void removeUserNo() {
+    public static void removeUserId() {
         userThreadLocal.remove();
     }
 }

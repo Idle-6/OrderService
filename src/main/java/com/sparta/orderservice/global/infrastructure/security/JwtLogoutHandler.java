@@ -28,6 +28,6 @@ public class JwtLogoutHandler implements LogoutHandler {
         // 남은 만료 시간까지 거부
         tokenBlacklistMemoryStore.addBlacklist(info.get(JwtUtil.USER_ID, Long.class), info.getExpiration().getTime());
         jwtUtil.expireRefreshCookie(response); // 쿠키 만료
-        UserThreadLocal.removeUserNo();
+        UserThreadLocal.removeUserId();
     }
 }

@@ -8,10 +8,14 @@ public class StoreExceptionLogUtils {
     }
 
     public static String getAlreadyOwnedMessage(Long userId) {
-        return "이미 가게를 소유한 사용자입니다. 사용자 ID=%s".formatted(userId);
+        return "이미 가게를 소유한 사용자입니다: 사용자 ID=%s".formatted(userId);
     }
 
-    public static String getDeleteForbiddenMessage(Long userId) {
-        return "가게 삭제 권한이 없습니다. 사용자 ID=%s".formatted(userId);
+    public static String getUpdateForbiddenMessage(UUID storeId, Long userId) {
+        return "가게 수정 권한 없음: storeId=%s, 사용자 ID=%s".formatted(storeId, userId);
+    }
+
+    public static String getDeleteForbiddenMessage(UUID storeId, Long userId) {
+        return "가게 삭제 권한 없음: storeId=%s, 사용자 ID=%s".formatted(storeId, userId);
     }
 }

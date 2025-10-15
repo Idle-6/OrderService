@@ -50,7 +50,7 @@ public class StoreServiceV1 {
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new CategoryException(
                         CategoryErrorCode.CATEGORY_NOT_FOUND,
-                        CategoryExceptionLogUtils.getNotFoundMessage(request.getCategoryId(), null)
+                        CategoryExceptionLogUtils.getNotFoundMessage(request.getCategoryId(), USER_ID)
                 ));
 
         Store store = Store.ofNewStore(request.getName(),
@@ -92,6 +92,16 @@ public class StoreServiceV1 {
                         StoreErrorCode.STORE_NOT_FOUND,
                         StoreExceptionLogUtils.getNotFoundMessage(storeId, null)
                 ));
+
+        User user = userRepository.findById(UserThreadLocal.getUserId()).orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+
+        if (!hasPermission(user, store, USER_ID)) {
+            throw new StoreException(
+                    StoreErrorCode.STORE_FORBIDDEN,
+                    StoreExceptionLogUtils.getUpdateForbiddenMessage(storeId, USER_ID)
+            );
+        }
+
         Category newCategory = null;
         if (request.getCategoryId() != null) {
             newCategory = categoryRepository.findById(request.getCategoryId())
@@ -111,12 +121,12 @@ public class StoreServiceV1 {
                         StoreErrorCode.STORE_NOT_FOUND,
                         StoreExceptionLogUtils.getNotFoundMessage(storeId, null)
                 ));
-        User user = userRepository.findById(UserThreadLocal.getUserId()).orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+        User user = userRepository.findById(USER_ID).orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
 
-        if (!hasDeletePermission(user, store, USER_ID)) {
+        if (!hasPermission(user, store, USER_ID)) {
             throw new StoreException(
-                    StoreErrorCode.STORE_DELETE_FORBIDDEN,
-                    StoreExceptionLogUtils.getDeleteForbiddenMessage(USER_ID)
+                    StoreErrorCode.STORE_FORBIDDEN,
+                    StoreExceptionLogUtils.getDeleteForbiddenMessage(storeId, USER_ID)
             );
         }
 
@@ -140,7 +150,7 @@ public class StoreServiceV1 {
         );
     }
 
-    private boolean hasDeletePermission(User user, Store store, Long userId) {
+    private boolean hasPermission(User user, Store store, Long userId) {
         boolean isAdmin = Objects.equals(user.getRole().getAuthority(), UserRoleEnum.ADMIN.getAuthority());
         boolean isOwner = Objects.equals(store.getCreatedBy().getUserId(), userId);
         return isAdmin || isOwner;

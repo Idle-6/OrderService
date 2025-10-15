@@ -47,7 +47,10 @@ public class CustomStoreRepositoryImpl extends QuerydslRepositorySupport impleme
         JPAQuery<ResStoreDtoV1> jpaQuery = query.select(getStoreProjection())
                 .from(qStore)
                 .join(qCategory).on(qStore.category.categoryId.eq(qCategory.categoryId))
-                .where(whereExpression(searchParam), qStore.isPublic.isTrue())
+                .where(whereExpression(searchParam),
+                        qStore.isPublic.isTrue(),
+                        qStore.deletedAt.isNull()
+                )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize());
 
