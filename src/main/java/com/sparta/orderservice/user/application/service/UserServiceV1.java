@@ -1,7 +1,6 @@
 package com.sparta.orderservice.user.application.service;
 
 import com.sparta.orderservice.auth.infrastructure.util.JwtUtil;
-import com.sparta.orderservice.auth.infrastructure.util.TokenBlacklistMemoryStore;
 import com.sparta.orderservice.user.domain.entity.User;
 import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
 import com.sparta.orderservice.user.domain.repository.UserRepository;
@@ -26,7 +25,6 @@ public class UserServiceV1 {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-    private final TokenBlacklistMemoryStore tokenBlacklistMemoryStore;
 
     private final String ADMIN_TOKEN = "FcurV51GZOIh6uOGuhyg6dG3odIYYsRM0";
 
