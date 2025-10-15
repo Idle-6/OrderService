@@ -23,14 +23,14 @@ import java.util.UUID;
 public class CategoryServiceV1 {
 
     private final CategoryRepository categoryRepository;
-    private final Long USER_ID = UserThreadLocal.getUserId();
 
     public ResCategoryDtoV1 createCategory(ReqCategoryDtoV1 request) {
+        Long userId = UserThreadLocal.getUserId();
 
         // 카테고리 존재 여부
         checkCategoryNameDuplication(request.getName());
 
-        Category category = Category.ofNewCategory(request.getName(), USER_ID);
+        Category category = Category.ofNewCategory(request.getName(), userId);
 
         categoryRepository.save(category);
 
@@ -62,6 +62,7 @@ public class CategoryServiceV1 {
     }
 
     public ResCategoryDtoV1 updateCategory(UUID categoryId, ReqCategoryUpdateDtoV1 request) {
+        Long userId = UserThreadLocal.getUserId();
 
         checkCategoryNameDuplication(request.getName());
 
@@ -71,19 +72,21 @@ public class CategoryServiceV1 {
                         CategoryExceptionLogUtils.getNotFoundMessage(categoryId, null)
                 ));
 
-        category.update(request.getName(), USER_ID);
+        category.update(request.getName(), userId);
 
         return convertResCategoryDto(category);
     }
 
     public void deleteCategory(UUID categoryId) {
+        Long userId = UserThreadLocal.getUserId();
+
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new CategoryException(
                         CategoryErrorCode.CATEGORY_NOT_FOUND,
                         CategoryExceptionLogUtils.getNotFoundMessage(categoryId, null)
                 ));
 
-        category.delete(USER_ID);
+        category.delete(userId);
     }
 
     private ResCategoryDtoV1 convertResCategoryDto(Category category) {
