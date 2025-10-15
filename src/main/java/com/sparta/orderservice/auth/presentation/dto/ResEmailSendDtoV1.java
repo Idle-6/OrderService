@@ -7,8 +7,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ResEmailVarificationCheckDtoV1 {
+public class ResEmailSendDtoV1 {
     private boolean success;
     private String message;
-    private String email;
 }
