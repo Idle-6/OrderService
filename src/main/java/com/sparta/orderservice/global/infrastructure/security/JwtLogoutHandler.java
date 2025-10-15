@@ -2,7 +2,6 @@ package com.sparta.orderservice.global.infrastructure.security;
 
 import com.sparta.orderservice.auth.infrastructure.util.JwtUtil;
 import com.sparta.orderservice.auth.infrastructure.util.TokenBlacklistMemoryStore;
-import com.sparta.orderservice.user.infrastructure.UserThreadLocal;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -28,6 +27,5 @@ public class JwtLogoutHandler implements LogoutHandler {
         // 남은 만료 시간까지 거부
         tokenBlacklistMemoryStore.addBlacklist(info.get(JwtUtil.USER_ID, Long.class), info.getExpiration().getTime());
         jwtUtil.expireRefreshCookie(response); // 쿠키 만료
-        UserThreadLocal.removeUserId();
     }
 }

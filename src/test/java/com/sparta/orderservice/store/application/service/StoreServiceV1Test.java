@@ -13,8 +13,6 @@ import com.sparta.orderservice.store.presentation.dto.response.ResStoreDetailDto
 import com.sparta.orderservice.store.presentation.dto.response.ResStoreDtoV1;
 import com.sparta.orderservice.user.domain.entity.User;
 import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
-import com.sparta.orderservice.user.domain.repository.UserRepository;
-import com.sparta.orderservice.user.infrastructure.UserThreadLocal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,9 +40,6 @@ import static org.junit.jupiter.api.Assertions.*;
 class StoreServiceV1Test {
 
     @Mock
-    UserRepository userRepository;
-
-    @Mock
     CategoryRepository categoryRepository;
 
     @Mock
@@ -60,8 +55,6 @@ class StoreServiceV1Test {
 
     @BeforeEach
     void setUp() {
-        UserThreadLocal.removeUserId();
-
         user = User.builder().email("user1@test.com").password("password1").name("김철수").address("서울 강남구").role(UserRoleEnum.USER).isActive(true).build();
         ReflectionTestUtils.setField(user, "userId", 1L);
 
@@ -77,32 +70,27 @@ class StoreServiceV1Test {
     @Test
     @DisplayName("가게 생성")
     void createStore() {
-        UserThreadLocal.setUserId(2L);
         User user = User.builder().email("user1@test.com").password("password1").name("김철수").address("서울 강남구").role(UserRoleEnum.USER).isActive(true).build();
         ReflectionTestUtils.setField(user, "userId", 2L);
 
         when(storeRepository.existsStoreByUserId(Mockito.anyLong())).thenReturn(false);
-        when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(user));
         when(categoryRepository.findById(Mockito.any())).thenReturn(Optional.of(category));
 
         ReqStoreDtoV1 request = new ReqStoreDtoV1(categoryId, "가게이름2", "223-45-67890", "010-2222-2222", "서울 마포구 연남동", "시원한 한식", false);
-        storeService.createStore(request);
+        storeService.createStore(request, user);
 
-        verify(userRepository, Mockito.times(1)).findById(Mockito.anyLong());
         verify(categoryRepository, Mockito.times(1)).findById(Mockito.any());
         verify(storeRepository, Mockito.times(1)).save(Mockito.any(Store.class));
-        UserThreadLocal.removeUserId();
     }
 
     @Test
     @DisplayName("가게 생성 - 이미 가게를 소유한 사용자")
     void createStore_already_exist() {
-        UserThreadLocal.setUserId(1L);
         when(storeRepository.existsStoreByUserId(Mockito.anyLong())).thenReturn(true);
 
         assertThrows(StoreException.class, () -> {
             ReqStoreDtoV1 request = new ReqStoreDtoV1(categoryId, "가게이름2", "223-45-67890", "010-2222-2222", "서울 마포구 연남동", "시원한 한식", false);
-            storeService.createStore(request);
+            storeService.createStore(request, user);
         });
 
         verify(storeRepository, Mockito.times(1)).existsStoreByUserId(Mockito.anyLong());
@@ -148,26 +136,22 @@ class StoreServiceV1Test {
     @Test
     @DisplayName("가게 수정 - 이름")
     void updateStore() {
-        UserThreadLocal.setUserId(1L);
         when(storeRepository.findById(Mockito.any())).thenReturn(Optional.of(store));
-        when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(user));
 
         ReqStoreUpdateDtoV1 request = new ReqStoreUpdateDtoV1(null, "가게2", null, null, null, null, true);
-        storeService.updateStore(storeId, request);
+        storeService.updateStore(storeId, request, user);
 
         verify(storeRepository, Mockito.times(1)).findById(Mockito.any());
-        verify(userRepository, Mockito.times(1)).findById(Mockito.anyLong());
     }
 
     @Test
     @DisplayName("가게 수정 - 존재하지 않음")
     void updateStore_not_found() {
-        UserThreadLocal.setUserId(1L);
         when(storeRepository.findById(Mockito.any())).thenReturn(Optional.empty());
 
         assertThrows(StoreException.class, () -> {
             ReqStoreUpdateDtoV1 request = new ReqStoreUpdateDtoV1(null, "가게2", null, null, null, null, true);
-            storeService.updateStore(storeId, request);
+            storeService.updateStore(storeId, request, user);
         });
 
         verify(storeRepository, Mockito.times(1)).findById(Mockito.any());
@@ -176,16 +160,13 @@ class StoreServiceV1Test {
     @Test
     @DisplayName("가게 수정 - 카테고리")
     void updateStore_category() {
-        UserThreadLocal.setUserId(1L);
         when(storeRepository.findById(Mockito.any())).thenReturn(Optional.of(store));
-        when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(user));
         when(categoryRepository.findById(Mockito.any())).thenReturn(Optional.of(category));
 
         ReqStoreUpdateDtoV1 request = new ReqStoreUpdateDtoV1(categoryId, "가게2", null, null, null, null,  true);
-        storeService.updateStore(storeId, request);
+        storeService.updateStore(storeId, request, user);
 
         verify(storeRepository, Mockito.times(1)).findById(Mockito.any());
-        verify(userRepository, Mockito.times(1)).findById(Mockito.anyLong());
         verify(categoryRepository, Mockito.times(1)).findById(Mockito.any());
     }
 
@@ -193,65 +174,53 @@ class StoreServiceV1Test {
     @DisplayName("가게 수정 - 존재하지 않는 카테고리")
     void updateStore_category_not_found() {
         when(storeRepository.findById(Mockito.any())).thenReturn(Optional.of(store));
-        when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(user));
         when(categoryRepository.findById(Mockito.any())).thenReturn(Optional.empty());
 
-        UserThreadLocal.setUserId(1L);
         assertThrows(CategoryException.class, () -> {
             ReqStoreUpdateDtoV1 request = new ReqStoreUpdateDtoV1(UUID.randomUUID(), "가게2", null, null, null, null, true);
-            storeService.updateStore(storeId, request);
+            storeService.updateStore(storeId, request, user);
         });
 
         verify(storeRepository, Mockito.times(1)).findById(Mockito.any());
-        verify(userRepository, Mockito.times(1)).findById(Mockito.anyLong());
         verify(categoryRepository, Mockito.times(1)).findById(Mockito.any());
     }
 
     @Test
     @DisplayName("가게 삭제 - 가게주인")
     void deleteStore_owner() {
-        UserThreadLocal.setUserId(1L);
         User user = User.builder().email("user1@test.com").password("password1").name("김철수").address("서울 강남구").role(UserRoleEnum.OWNER).isActive(true).build();
         ReflectionTestUtils.setField(user, "userId", 1L);
 
         when(storeRepository.findById(Mockito.any())).thenReturn(Optional.of(store));
-        when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(user));
 
-        storeService.deleteStore(storeId);
+        storeService.deleteStore(storeId, user);
 
         verify(storeRepository, Mockito.times(1)).findById(Mockito.any());
-        verify(userRepository, Mockito.times(1)).findById(Mockito.anyLong());
     }
 
     @Test
     @DisplayName("가게 삭제 - 관리자")
     void deleteStore_admin() {
-        UserThreadLocal.setUserId(2L);
         User user = User.builder().email("user1@test.com").password("password1").name("김철수").address("서울 강남구").role(UserRoleEnum.ADMIN).isActive(true).build();
         ReflectionTestUtils.setField(user, "userId", 2L);
 
         when(storeRepository.findById(Mockito.any())).thenReturn(Optional.of(store));
-        when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(user));
 
-        storeService.deleteStore(storeId);
+        storeService.deleteStore(storeId, user);
 
         verify(storeRepository, Mockito.times(1)).findById(Mockito.any());
-        verify(userRepository, Mockito.times(1)).findById(Mockito.anyLong());
     }
 
     @Test
     @DisplayName("가게 삭제 - 권한 없음")
     void deleteStore_forbidden() {
-        UserThreadLocal.setUserId(3L);
         User user = User.builder().email("user1@test.com").password("password1").name("김철수").address("서울 강남구").role(UserRoleEnum.USER).isActive(true).build();
         ReflectionTestUtils.setField(user, "userId", 3L);
 
         when(storeRepository.findById(Mockito.any())).thenReturn(Optional.of(store));
-        when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(user));
 
-        assertThrows(StoreException.class, () -> storeService.deleteStore(storeId));
+        assertThrows(StoreException.class, () -> storeService.deleteStore(storeId, user));
 
         verify(storeRepository, Mockito.times(1)).findById(Mockito.any());
-        verify(userRepository, Mockito.times(1)).findById(Mockito.anyLong());
     }
 }

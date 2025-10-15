@@ -17,8 +17,6 @@ import com.sparta.orderservice.store.presentation.dto.response.ResStoreDetailDto
 import com.sparta.orderservice.store.presentation.dto.response.ResStoreDtoV1;
 import com.sparta.orderservice.user.domain.entity.User;
 import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
-import com.sparta.orderservice.user.domain.repository.UserRepository;
-import com.sparta.orderservice.user.infrastructure.UserThreadLocal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,11 +33,9 @@ public class StoreServiceV1 {
 
     private final StoreRepository storeRepository;
     private final CategoryRepository categoryRepository;
-    private final UserRepository userRepository;
 
-    public ResStoreDetailDtoV1 createStore(ReqStoreDtoV1 request) {
-        Long userId = UserThreadLocal.getUserId();
-
+    public ResStoreDetailDtoV1 createStore(ReqStoreDtoV1 request, User user) {
+        Long userId = user.getUserId();
         if(storeRepository.existsStoreByUserId(userId)) {
             throw new StoreException(
                     StoreErrorCode.STORE_ALREADY_OWNED,
@@ -47,7 +43,6 @@ public class StoreServiceV1 {
             );
         }
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new CategoryException(
                         CategoryErrorCode.CATEGORY_NOT_FOUND,
@@ -86,8 +81,8 @@ public class StoreServiceV1 {
                 ));
     }
 
-    public ResStoreDetailDtoV1 updateStore(UUID storeId, ReqStoreUpdateDtoV1 request) {
-        Long userId = UserThreadLocal.getUserId();
+    public ResStoreDetailDtoV1 updateStore(UUID storeId, ReqStoreUpdateDtoV1 request, User user) {
+        Long userId = user.getUserId();
 
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new StoreException(
@@ -95,9 +90,7 @@ public class StoreServiceV1 {
                         StoreExceptionLogUtils.getNotFoundMessage(storeId, null)
                 ));
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
-
-        if (!hasPermission(user, store, UserThreadLocal.getUserId())) {
+        if (!hasPermission(user, store, userId)) {
             throw new StoreException(
                     StoreErrorCode.STORE_FORBIDDEN,
                     StoreExceptionLogUtils.getUpdateForbiddenMessage(storeId, userId)
@@ -117,16 +110,14 @@ public class StoreServiceV1 {
         return convertResStoreDetailDto(store);
     }
 
-    public void deleteStore(UUID storeId) {
-        Long userId = UserThreadLocal.getUserId();
+    public void deleteStore(UUID storeId, User user) {
+        Long userId = user.getUserId();
 
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new StoreException(
                         StoreErrorCode.STORE_NOT_FOUND,
                         StoreExceptionLogUtils.getNotFoundMessage(storeId, null)
                 ));
-        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
-
         if (!hasPermission(user, store, userId)) {
             throw new StoreException(
                     StoreErrorCode.STORE_FORBIDDEN,
