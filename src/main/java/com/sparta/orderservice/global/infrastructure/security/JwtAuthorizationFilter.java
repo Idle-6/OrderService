@@ -1,6 +1,8 @@
 package com.sparta.orderservice.global.infrastructure.security;
 
 import com.sparta.orderservice.auth.infrastructure.util.JwtUtil;
+import com.sparta.orderservice.auth.presentation.advice.AuthErrorCode;
+import com.sparta.orderservice.auth.presentation.advice.AuthException;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -46,10 +48,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         // Access만 허용
         String accessToken = jwtUtil.getAccessTokenFromHeader(request);
         if(StringUtils.hasText(accessToken)){
-            if(!jwtUtil.validateToken(accessToken, true)){
-                log.error("Token Error");
-                return;
-            }
+            jwtUtil.validateToken(accessToken, true);
 
             Claims claims = jwtUtil.getUserInfoFromToken(accessToken);
 
@@ -85,7 +84,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     // token_expired_at 이전에 발급된 토큰 무효화
     private void validateTokenExpiration(UserDetailsImpl userDetails, Claims claims) {
         if (!(userDetails instanceof UserDetailsImpl)) {
-            throw new BadCredentialsException("인증 정보가 올바르지 않습니다.");
+            throw new AuthException(AuthErrorCode.AUTH_INVALID_USER_DETAILS);
         }
 
         Long dbExp = userDetails.getTokenExpiredAt();
@@ -96,11 +95,11 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
         Long jwtIat = claims.getIssuedAt().getTime();
         if (jwtIat == null) {
-            throw new BadCredentialsException("토큰 정보가 올바르지 않습니다.");
+            throw new AuthException(AuthErrorCode.AUTH_INVALID_CLAIMS);
         }
 
         if (jwtIat <= dbExp) {
-            throw new CredentialsExpiredException("삭제된 토큰입니다.");
+            throw new AuthException(AuthErrorCode.AUTH_EXPIRED_TOKEN);
         }
     }
 }

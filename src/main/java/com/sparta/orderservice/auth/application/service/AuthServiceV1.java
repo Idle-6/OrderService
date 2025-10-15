@@ -49,7 +49,7 @@ public class AuthServiceV1 {
         jwtUtil.validateToken(refreshToken, false);
 
         Claims info = jwtUtil.getUserInfoFromToken(refreshToken);
-        Date exp = info.getExpiration();
+        long expTime = info.getExpiration().getTime();
         long userId = info.get(JwtUtil.USER_ID, Long.class);
         String email = info.getSubject();
 
@@ -64,7 +64,7 @@ public class AuthServiceV1 {
         jwtUtil.addAccessTokenToHeader(response, newAT);
 
         long now = System.currentTimeMillis();
-        boolean rotateRT = (exp.getTime() - now) <= RT_ROTATE_TIME;
+        boolean rotateRT = (expTime - now) <= RT_ROTATE_TIME;
         if(rotateRT) {
             String newRT = jwtUtil.createRefreshToken(email, userId);
             jwtUtil.addRefreshTokenToCookie(response, newRT);

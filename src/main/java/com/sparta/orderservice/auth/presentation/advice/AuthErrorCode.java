@@ -15,7 +15,8 @@ public enum AuthErrorCode implements ErrorCodeIfs {
     AUTH_INVALID_JWT_SIGNATURE(HttpStatus.UNAUTHORIZED, 1001, "유효하지 않은 JWT 서명입니다."),
     AUTH_EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, 1001, "만료된 JWT 토큰입니다."),
     AUTH_UNSUPPORTED_JWT_TOKEN(HttpStatus.BAD_REQUEST, 1001, "지원되지 않는 JWT 토큰입니다."),
-    AUTH_INVALID_CLAIMS(HttpStatus.BAD_REQUEST, 1001, "잘못된 JWT 토큰입니다.");
+    AUTH_INVALID_CLAIMS(HttpStatus.BAD_REQUEST, 1001, "토큰 정보가 올바르지 않습니다."),
+    AUTH_INVALID_USER_DETAILS(HttpStatus.BAD_REQUEST, 1001, "인증 정보가 올바르지 않습니다.");
 
     private final HttpStatus httpStatus;
     private final Integer errorCode;
