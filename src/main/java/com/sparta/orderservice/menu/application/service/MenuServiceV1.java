@@ -3,6 +3,8 @@ package com.sparta.orderservice.menu.application.service;
 import com.sparta.orderservice.global.infrastructure.security.UserDetailsImpl;
 import com.sparta.orderservice.menu.domain.entity.MenuEntity;
 import com.sparta.orderservice.menu.domain.repository.MenuRepository;
+import com.sparta.orderservice.menu.infrastructure.api.gemini.client.GeminiClient;
+import com.sparta.orderservice.menu.infrastructure.api.gemini.dto.response.ResGeminiDto;
 import com.sparta.orderservice.menu.presentation.dto.request.ReqMenuCreateDtoV1;
 import com.sparta.orderservice.menu.presentation.dto.request.ReqMenuUpdateDtoV1;
 import com.sparta.orderservice.menu.presentation.dto.response.ResMenuCreateDtoV1;
@@ -26,6 +28,7 @@ import java.util.UUID;
 public class MenuServiceV1 {
 
     private final MenuRepository menuRepository;
+    private final GeminiClient geminiClient;
 
     public ResMenuCreateDtoV1 createMenu(ReqMenuCreateDtoV1 requestDto) {
 
@@ -36,7 +39,9 @@ public class MenuServiceV1 {
                 .build();
 
         if(requestDto.isUseAi()) {
-            //TODO AI API 호출
+            ResGeminiDto resGeminiDto = geminiClient.callApi(requestDto.getPrompt());
+            String description = resGeminiDto.getResultText();
+            menuEntity.setDescription(description);
         } else {
             menuEntity.setDescription(requestDto.getDescription());
         }
