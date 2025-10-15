@@ -1,10 +1,8 @@
 package com.sparta.orderservice.menu.infrastructure.api.gemini.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -15,6 +13,14 @@ public class ResGeminiDto {
     UsageMetadata usageMetadata;
     String modelVersion;
     String responseId;
+
+    public ResGeminiDto(String string) {
+        this.candidates = new ArrayList<>();
+        candidates.add(new Candidate());
+        candidates.get(0).content = new Content();
+        candidates.get(0).content.parts = List.of(new Part());
+        candidates.get(0).content.parts.get(0).text = string;
+    }
 
     @Getter
     private static class Candidate {
