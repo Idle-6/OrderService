@@ -41,14 +41,12 @@ public class UserServiceV1 {
         }
 
         // 사용자 ROLE 확인
-        UserRoleEnum role = UserRoleEnum.USER;
+        UserRoleEnum role = UserRoleEnum.fromAuthority(requestDto.getRole());
         if (requestDto.isAdmin()) {
             if (!ADMIN_TOKEN.equals(requestDto.getAdminToken())) {
                 throw new UserException(UserErrorCode.USER_INVALID_ADMIN_TOKEN);
             }
             role = UserRoleEnum.ADMIN;
-        }else if(!requestDto.getRole().equals(UserRoleEnum.OWNER.getAuthority())) {
-            role = UserRoleEnum.OWNER;
         }
 
         // 사용자 등록
@@ -92,7 +90,7 @@ public class UserServiceV1 {
         return user;
     }
 
-    public void deleteUser(HttpServletRequest request, HttpServletResponse response, Long userId) {
+    public void deleteUser(HttpServletResponse response, Long userId) {
         User user = findById(userId);
 
         if(!user.isActive()){

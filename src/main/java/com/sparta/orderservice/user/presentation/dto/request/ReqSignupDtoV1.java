@@ -1,5 +1,6 @@
 package com.sparta.orderservice.user.presentation.dto.request;
 
+import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -21,7 +22,7 @@ public class ReqSignupDtoV1 {
     @NotBlank(message = "주소는 필수 입력 항목입니다.")
     private String address;
 
-    private String role;
+    private String role = UserRoleEnum.USER.getAuthority();
 
     private boolean admin = false;
     private String adminToken = "";

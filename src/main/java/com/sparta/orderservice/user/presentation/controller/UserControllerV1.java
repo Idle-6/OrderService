@@ -60,9 +60,9 @@ public class UserControllerV1 {
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<ResUserDeleteDtoV1> deleteUser(@PathVariable Long userId, HttpServletRequest request, HttpServletResponse response){
+    public ResponseEntity<ResUserDeleteDtoV1> deleteUser(@PathVariable Long userId, HttpServletResponse response){
 
-        userService.deleteUser(request, response, userId);
+        userService.deleteUser(response, userId);
 
         ResUserDeleteDtoV1 body = new ResUserDeleteDtoV1(
                 userId,
