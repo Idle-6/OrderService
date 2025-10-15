@@ -1,0 +1,142 @@
+package com.sparta.orderservice.order.domain.repository.impl;
+
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.dsl.PathBuilder;
+import com.querydsl.jpa.impl.JPAQuery;
+import com.sparta.orderservice.order.domain.entity.Order;
+import com.sparta.orderservice.order.domain.entity.QOrder;
+import com.sparta.orderservice.order.domain.repository.CustomOrderRepository;
+import com.sparta.orderservice.order.presentation.dto.SearchParam;
+import com.sparta.orderservice.order.presentation.dto.response.QResOrderDetailDtoV1;
+import com.sparta.orderservice.order.presentation.dto.response.QResOrderDtoV1;
+import com.sparta.orderservice.order.presentation.dto.response.ResOrderDetailDtoV1;
+import com.sparta.orderservice.order.presentation.dto.response.ResOrderDtoV1;
+import com.sparta.orderservice.store.domain.entity.QStore;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
+import org.springframework.data.support.PageableExecutionUtils;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+public class CustomOrderRepositoryImpl extends QuerydslRepositorySupport implements CustomOrderRepository {
+
+    private static final String[] ALLOWED_SORT_PROPERTIES = {"totalPrice", "createdAt"};
+
+    private final QOrder qOrder = QOrder.order;
+
+    public CustomOrderRepositoryImpl() {
+        super(Order.class);
+    }
+
+    @Override
+    public Page<ResOrderDtoV1> findOrderPage(SearchParam searchParam, Pageable pageable) {
+
+        JPAQuery<Order> query = new JPAQuery<>(getEntityManager());
+
+        JPAQuery<ResOrderDtoV1> jpaQuery = query
+                .select(getOrderProjection())
+                .from(qOrder)
+                .join(qOrder.store).on(qOrder.store.storeId.eq(QStore.store.storeId))
+                .where(whereExpression(searchParam))
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize());
+
+        // 정렬 처리
+        if (pageable.getSort().isSorted()) {
+            for (Sort.Order order : pageable.getSort()) {
+                if (!List.of(ALLOWED_SORT_PROPERTIES).contains(order.getProperty())) continue;
+                PathBuilder<Order> entityPath = new PathBuilder<>(Order.class, "order");
+                jpaQuery.orderBy(new com.querydsl.core.types.OrderSpecifier(
+                        order.isAscending() ? com.querydsl.core.types.Order.ASC : com.querydsl.core.types.Order.DESC,
+                        entityPath.get(order.getProperty())
+                ));
+            }
+        } else {
+            jpaQuery.orderBy(qOrder.createdAt.desc());
+        }
+
+        // 총 개수
+        JPAQuery<Long> countQuery = new JPAQuery<>(getEntityManager())
+                .select(qOrder.count())
+                .from(qOrder)
+                .join(qOrder.store).on(qOrder.store.storeId.eq(QStore.store.storeId))
+                .where(whereExpression(searchParam));
+
+        List<ResOrderDtoV1> results = jpaQuery.fetch();
+
+        return PageableExecutionUtils.getPage(results, pageable, countQuery::fetchOne);
+    }
+
+    @Override
+    public Optional<ResOrderDetailDtoV1> findOrderDetailById(UUID orderId) {
+        JPAQuery<Order> query = new JPAQuery<>(getEntityManager());
+
+        ResOrderDetailDtoV1 result = query
+                .select(getOrderDetailProjection())
+                .from(qOrder)
+                .where(qOrder.orderId.eq(orderId))
+                .join(qOrder.store).on(qOrder.store.storeId.eq(QStore.store.storeId))
+                .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+
+    @Override
+    public Optional<ResOrderDetailDtoV1> findOrderDetailByUserId(Long userId) {
+        JPAQuery<Order> query = new JPAQuery<>(getEntityManager());
+
+        ResOrderDetailDtoV1 result = query
+                .select(getOrderDetailProjection())
+                .from(qOrder)
+                .where(qOrder.user.userId.eq(userId))
+                .join(qOrder.store).on(qOrder.store.storeId.eq(QStore.store.storeId))
+                .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+
+    private BooleanBuilder whereExpression(SearchParam searchParam) {
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if(searchParam.getTotalPrice() != null){
+            builder.and(
+                    qOrder.totalPrice.eq(searchParam.getTotalPrice())
+                            .or(qOrder.totalPrice.eq(searchParam.getTotalPrice()))
+            );
+        }
+
+        if (searchParam.getOrderStatus() != null) {
+            builder.and(qOrder.orderStatus.eq(searchParam.getOrderStatus()));
+        }
+
+        return builder;
+    }
+
+    private QResOrderDtoV1 getOrderProjection() {
+        return new QResOrderDtoV1(
+                qOrder.orderId,
+                qOrder.user.userId,
+                qOrder.store.storeId,
+                qOrder.totalPrice,
+                qOrder.orderStatus,
+                qOrder.createdAt
+        );
+    }
+
+    private QResOrderDetailDtoV1 getOrderDetailProjection() {
+        return new QResOrderDetailDtoV1(
+                qOrder.orderId,
+                qOrder.user.userId,
+                qOrder.store.storeId,
+                qOrder.orderMessage,
+                qOrder.totalPrice,
+                qOrder.orderStatus,
+                qOrder.createdAt,
+                qOrder.updatedAt
+        );
+    }
+}
