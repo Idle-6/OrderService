@@ -1,6 +1,9 @@
 package com.sparta.orderservice.payment.presentation.dto.response;
 
 import com.querydsl.core.annotations.QueryProjection;
+import com.sparta.orderservice.payment.domain.entity.PaymentMethodEnum;
+import com.sparta.orderservice.payment.domain.entity.PaymentStatusEnum;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,6 +14,7 @@ import java.util.UUID;
 
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
 public class ResPaymentDtoV1 {
 
     private UUID paymentId;
@@ -23,7 +27,6 @@ public class ResPaymentDtoV1 {
 
     private String userName;
 
-    @Setter
     private String status;
 
     private LocalDateTime paidAt;
@@ -33,13 +36,13 @@ public class ResPaymentDtoV1 {
     private LocalDateTime canceledAt;
 
     @QueryProjection
-    public ResPaymentDtoV1(UUID paymentId, UUID orderId, BigDecimal amount, String payType, String userName, String status, LocalDateTime paidAt, LocalDateTime canceledAt, LocalDateTime updatedAt) {
+    public ResPaymentDtoV1(UUID paymentId, UUID orderId, BigDecimal amount, PaymentMethodEnum payType, String userName, PaymentStatusEnum status, LocalDateTime paidAt, LocalDateTime canceledAt, LocalDateTime updatedAt) {
         this.paymentId = paymentId;
         this.orderId = orderId;
         this.amount = amount;
-        this.payType = payType;
+        this.payType = payType.getDisplayName();
         this.userName = userName;
-        this.status = status;
+        this.status = status.getDescription();
         this.paidAt = paidAt;
         this.canceledAt = canceledAt;
         this.updatedAt = updatedAt;

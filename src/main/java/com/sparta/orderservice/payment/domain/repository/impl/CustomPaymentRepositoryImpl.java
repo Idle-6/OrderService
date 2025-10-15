@@ -59,9 +59,9 @@ public class CustomPaymentRepositoryImpl implements CustomPaymentRepository {
                         qPayment.paymentId,
                         qPayment.order.orderId,
                         qPayment.amount,
-                        qPayment.method.stringValue(),
+                        qPayment.method,
                         qPayment.user.name,
-                        qPayment.status.stringValue(),
+                        qPayment.status,
                         qPayment.createdAt,
                         qPayment.updatedAt,
                         qPayment.deletedAt
