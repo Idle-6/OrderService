@@ -1,8 +1,9 @@
 package com.sparta.orderservice.payment.presentation.dto.response;
 
-import lombok.AllArgsConstructor;
+import com.querydsl.core.annotations.QueryProjection;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -10,27 +11,39 @@ import java.util.UUID;
 
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
 public class ResPaymentDtoV1 {
 
     private UUID paymentId;
 
     private UUID orderId;
 
-    private String orderName; // 주문 상품명 또는 내역
-
     private BigDecimal amount;
 
     private String payType; // 결제 방식 (카드, 계좌이체 등)
 
-    private String paymentKey; // PG 결제 키(외부 결제사 연동시)
-
     private String userName;
+
+    @Setter
+    private String status;
 
     private LocalDateTime paidAt;
 
-    private String status;
+    private LocalDateTime updatedAt;
 
-    private String receiptUrl; // 영수증 또는 결제 내역 URL
+    private LocalDateTime canceledAt;
+
+    @QueryProjection
+    public ResPaymentDtoV1(UUID paymentId, UUID orderId, BigDecimal amount, String payType, String userName, String status, LocalDateTime paidAt, LocalDateTime canceledAt, LocalDateTime updatedAt) {
+        this.paymentId = paymentId;
+        this.orderId = orderId;
+        this.amount = amount;
+        this.payType = payType;
+        this.userName = userName;
+        this.status = status;
+        this.paidAt = paidAt;
+        this.canceledAt = canceledAt;
+        this.updatedAt = updatedAt;
+    }
 }
+
 

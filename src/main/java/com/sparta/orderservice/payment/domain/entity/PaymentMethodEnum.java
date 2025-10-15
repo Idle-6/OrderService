@@ -1,5 +1,7 @@
 package com.sparta.orderservice.payment.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum PaymentMethodEnum {
     CARD("카드"),                // 신용/체크카드
     CASH("현금"),                // 배달 현장 결제
@@ -15,7 +17,18 @@ public enum PaymentMethodEnum {
         this.displayName = displayName;
     }
 
+    @JsonValue
     public String getDisplayName() {
         return displayName;
+    }
+
+    public static PaymentMethodEnum fromDisplayName(String displayName) {
+        for(PaymentMethodEnum method : PaymentMethodEnum.values()) {
+            if(method.getDisplayName().equals(displayName)) {
+                return method;
+            }
+        }
+
+        throw new IllegalArgumentException("Invalid display name");
     }
 }
