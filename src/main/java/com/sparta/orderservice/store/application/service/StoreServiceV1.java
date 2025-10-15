@@ -36,21 +36,22 @@ public class StoreServiceV1 {
     private final StoreRepository storeRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
-    private final Long USER_ID = UserThreadLocal.getUserId();
 
     public ResStoreDetailDtoV1 createStore(ReqStoreDtoV1 request) {
-        if(storeRepository.existsStoreByUserId(USER_ID)) {
+        Long userId = UserThreadLocal.getUserId();
+
+        if(storeRepository.existsStoreByUserId(userId)) {
             throw new StoreException(
                     StoreErrorCode.STORE_ALREADY_OWNED,
-                    StoreExceptionLogUtils.getAlreadyOwnedMessage(USER_ID)
+                    StoreExceptionLogUtils.getAlreadyOwnedMessage(userId)
             );
         }
 
-        User user = userRepository.findById(USER_ID).orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new CategoryException(
                         CategoryErrorCode.CATEGORY_NOT_FOUND,
-                        CategoryExceptionLogUtils.getNotFoundMessage(request.getCategoryId(), USER_ID)
+                        CategoryExceptionLogUtils.getNotFoundMessage(request.getCategoryId(), userId)
                 ));
 
         Store store = Store.ofNewStore(request.getName(),
@@ -86,6 +87,7 @@ public class StoreServiceV1 {
     }
 
     public ResStoreDetailDtoV1 updateStore(UUID storeId, ReqStoreUpdateDtoV1 request) {
+        Long userId = UserThreadLocal.getUserId();
 
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new StoreException(
@@ -93,12 +95,12 @@ public class StoreServiceV1 {
                         StoreExceptionLogUtils.getNotFoundMessage(storeId, null)
                 ));
 
-        User user = userRepository.findById(UserThreadLocal.getUserId()).orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
 
-        if (!hasPermission(user, store, USER_ID)) {
+        if (!hasPermission(user, store, UserThreadLocal.getUserId())) {
             throw new StoreException(
                     StoreErrorCode.STORE_FORBIDDEN,
-                    StoreExceptionLogUtils.getUpdateForbiddenMessage(storeId, USER_ID)
+                    StoreExceptionLogUtils.getUpdateForbiddenMessage(storeId, userId)
             );
         }
 
@@ -111,26 +113,28 @@ public class StoreServiceV1 {
                     ));
         }
 
-        store.update(request, newCategory, USER_ID);
+        store.update(request, newCategory, userId);
         return convertResStoreDetailDto(store);
     }
 
     public void deleteStore(UUID storeId) {
+        Long userId = UserThreadLocal.getUserId();
+
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new StoreException(
                         StoreErrorCode.STORE_NOT_FOUND,
                         StoreExceptionLogUtils.getNotFoundMessage(storeId, null)
                 ));
-        User user = userRepository.findById(USER_ID).orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
 
-        if (!hasPermission(user, store, USER_ID)) {
+        if (!hasPermission(user, store, userId)) {
             throw new StoreException(
                     StoreErrorCode.STORE_FORBIDDEN,
-                    StoreExceptionLogUtils.getDeleteForbiddenMessage(storeId, USER_ID)
+                    StoreExceptionLogUtils.getDeleteForbiddenMessage(storeId, userId)
             );
         }
 
-        store.delete(USER_ID);
+        store.delete(userId);
     }
 
     private ResStoreDetailDtoV1 convertResStoreDetailDto(Store store) {
