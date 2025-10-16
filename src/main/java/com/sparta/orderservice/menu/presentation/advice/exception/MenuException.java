@@ -127,4 +127,10 @@ public class MenuException extends RuntimeException implements ExceptionIfs {
                 "AI API 오류 : AI 서비스 호출 중 알 수 없는 오류가 발생했습니다\n"
         );
     }
+
+    public static MenuException AiApiNullResponseException() {
+        return new MenuException(MenuErrorCode.AiApiCallFail,
+                "AI API 오류 : AI API 호출 결과가 null입니다\n"
+        );
+    }
 }
