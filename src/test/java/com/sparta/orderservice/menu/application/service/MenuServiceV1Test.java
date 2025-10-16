@@ -12,6 +12,7 @@ import com.sparta.orderservice.menu.presentation.dto.response.ResMenuGetByStoreI
 import com.sparta.orderservice.menu.presentation.dto.response.ResMenuGetDtoV1;
 import com.sparta.orderservice.user.domain.entity.User;
 import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +35,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("메뉴 서비스")
 class MenuServiceV1Test {
 
+    private UserDetailsImpl userDetails;
+
     @Mock
     GeminiClient geminiClient;
 
@@ -42,6 +45,12 @@ class MenuServiceV1Test {
 
     @InjectMocks
     MenuServiceV1 menuServiceV1;
+
+    @BeforeEach
+    void setUp() {
+        User user = User.builder().role(UserRoleEnum.USER).build();
+        this.userDetails = new UserDetailsImpl(user);
+    }
 
     @Test
     @DisplayName("메뉴 생성")
@@ -62,10 +71,10 @@ class MenuServiceV1Test {
                 });
 
         //when
-        ResMenuCreateDtoV1 res = menuServiceV1.createMenu(requestDto);
+        ResMenuCreateDtoV1 res = menuServiceV1.createMenu(userDetails, requestDto);
 
         //then
-        verify(geminiClient, times(0)).callApi(anyString());
+        verify(geminiClient, times(0)).callApi(any(UserDetailsImpl.class), anyString());
         verify(menuRepository, times(1)).save(any(MenuEntity.class));
         assertEquals("매움", res.getDescription());
     }
@@ -83,7 +92,7 @@ class MenuServiceV1Test {
                 .prompt("짬뽕 상품의 설명을 50자 이내로 추천해줘.")
                 .build();
 
-        when(geminiClient.callApi(any(String.class)))
+        when(geminiClient.callApi(any(UserDetailsImpl.class), any(String.class)))
                 .thenReturn(new ResGeminiDto("얼큰하고 시원한 국물의 정통 짬뽕"));
 
         when(menuRepository.save(any(MenuEntity.class)))
@@ -92,20 +101,18 @@ class MenuServiceV1Test {
                 });
 
         //when
-        ResMenuCreateDtoV1 res = menuServiceV1.createMenu(requestDto);
+        ResMenuCreateDtoV1 res = menuServiceV1.createMenu(userDetails, requestDto);
 
         //then
-        verify(geminiClient, times(1)).callApi(anyString());
+        verify(geminiClient, times(1)).callApi(any(UserDetailsImpl.class), anyString());
         verify(menuRepository, times(1)).save(any(MenuEntity.class));
         assertEquals("얼큰하고 시원한 국물의 정통 짬뽕", res.getDescription());
     }
 
     @Test
     @DisplayName("메뉴 리스트 조회 - USER")
-    void getMenuListUser() {
+    void getMenuListUser() throws Exception {
         //before
-        User user = User.builder().role(UserRoleEnum.USER).build();
-        UserDetailsImpl userDetails = new UserDetailsImpl(user);
         UUID storeId = UUID.randomUUID();
         String search = "짬뽕";
         int page = 1;
@@ -120,6 +127,7 @@ class MenuServiceV1Test {
         List<MenuEntity> menuList = Arrays.asList(
                 new MenuEntity(UUID.randomUUID(), "자장면", "", 9000, true, storeId),
                 new MenuEntity(UUID.randomUUID(), "짬뽕", "신라면 정도 매움", 10000, true, storeId),
+                new MenuEntity(UUID.randomUUID(), "해물짬뽕", "해물 가득", 11000, true, storeId),
                 new MenuEntity(UUID.randomUUID(), "탕수육", "쫄깃 바삭한 튀김", 15000, true, storeId),
                 new MenuEntity(UUID.randomUUID(), "우육면", "", 9000, false, storeId),
                 new MenuEntity(UUID.randomUUID(), "팔보채", "", 15000, true, storeId)
@@ -141,10 +149,8 @@ class MenuServiceV1Test {
 
     @Test
     @DisplayName("메뉴 리스트 조회 - ADMIN")
-    void getMenuListAdmin() {
+    void getMenuListAdmin() throws Exception{
         //before
-        User user = User.builder().role(UserRoleEnum.ADMIN).build();
-        UserDetailsImpl userDetails = new UserDetailsImpl(user);
         UUID storeId = UUID.randomUUID();
         String search = "짬뽕";
         int page = 1;
@@ -177,6 +183,7 @@ class MenuServiceV1Test {
     }
 
     @Test
+    @DisplayName("메뉴 상세 조회")
     void getMenu() {
         //before
         UUID menuId = UUID.randomUUID();
@@ -195,6 +202,7 @@ class MenuServiceV1Test {
     }
 
     @Test
+    @DisplayName("메뉴 수정")
     void updateMenu() {
         //before
         UUID menuId = UUID.randomUUID();
@@ -220,6 +228,7 @@ class MenuServiceV1Test {
     }
 
     @Test
+    @DisplayName("메뉴 삭제")
     void deleteMenu() {
         //before
         UUID menuId = UUID.randomUUID();

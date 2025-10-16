@@ -32,7 +32,9 @@ public class MenuServiceV1 {
     private final MenuRepository menuRepository;
     private final GeminiClient geminiClient;
 
-    public ResMenuCreateDtoV1 createMenu(ReqMenuCreateDtoV1 requestDto) {
+    public ResMenuCreateDtoV1 createMenu(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            ReqMenuCreateDtoV1 requestDto) {
 
         MenuEntity menuEntity = MenuEntity.builder()
                 .name(requestDto.getName())
@@ -42,7 +44,7 @@ public class MenuServiceV1 {
 
         try {
             if(requestDto.isUseAi()) {
-                ResGeminiDto resGeminiDto = geminiClient.callApi(requestDto.getPrompt());
+                ResGeminiDto resGeminiDto = geminiClient.callApi(userDetails, requestDto.getPrompt());
                 String description = resGeminiDto.getResultText();
                 menuEntity.setDescription(description);
             } else {
