@@ -7,6 +7,10 @@ import com.sparta.orderservice.menu.presentation.advice.error.MenuErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientException;
 
 import java.util.UUID;
 
@@ -86,5 +90,41 @@ public class MenuException extends RuntimeException implements ExceptionIfs {
         return new MenuException(MenuErrorCode.DataAccessException,
                 "메뉴 삭제 : 데이터베이스 오류\n" +
                 "에러 메세지 : " + e.getMessage());
+    }
+
+    public static MenuException AiApiClientException(HttpClientErrorException e) {
+        return new MenuException(MenuErrorCode.AiApiCallFail,
+                "AI API 오류 : 클라이언트 요청 오류\n" +
+                "status : " + e.getStatusCode() + "\n" +
+                "response : " + e.getResponseBodyAsString()
+        );
+    }
+
+    public static MenuException AiApiServerException(HttpServerErrorException e) {
+        return new MenuException(MenuErrorCode.AiApiCallFail,
+                "AI API 오류 : 서버 오류\n" +
+                "status : " + e.getStatusCode() + "\n" +
+                "response : " + e.getResponseBodyAsString()
+        );
+    }
+
+    public static MenuException AiApiNetworkException(ResourceAccessException e) {
+        return new MenuException(MenuErrorCode.AiApiCallFail,
+                "AI API 오류 : 네트워크 접근 오류\n" +
+                "에러 메세지 : " + e.getMessage()
+        );
+    }
+
+    public static MenuException AiApiRestClientException(RestClientException e) {
+        return new MenuException(MenuErrorCode.AiApiCallFail,
+                "AI API 오류 : Rest 클라이언트 예외 발생\n" +
+                "에러 메세지 : " + e.getMessage()
+        );
+    }
+
+    public static MenuException AiApiUnknownException(Exception e) {
+        return new MenuException(MenuErrorCode.AiApiCallFail,
+                "AI API 오류 : AI 서비스 호출 중 알 수 없는 오류가 발생했습니다\n"
+        );
     }
 }
