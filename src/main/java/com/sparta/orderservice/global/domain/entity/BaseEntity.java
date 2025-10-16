@@ -2,8 +2,14 @@ package com.sparta.orderservice.global.domain.entity;
 
 import com.sparta.orderservice.global.infrastructure.config.auditing.AuditorAwareImpl;
 import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.MappedSuperclass;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.data.annotation.CreatedBy;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -13,8 +19,11 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @MappedSuperclass
+@SuperBuilder
 @EntityListeners(AuditingEntityListener.class)
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class BaseEntity {
 
     @CreatedDate
@@ -27,6 +36,7 @@ public class BaseEntity {
     private LocalDateTime deletedAt;
 
     @CreatedBy
+    @Column(updatable = false)
     private Long createdBy;
 
     @LastModifiedBy
