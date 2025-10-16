@@ -1,5 +1,8 @@
 package com.sparta.orderservice.user.domain.entity;
 
+import com.sparta.orderservice.user.presentation.advice.UserErrorCode;
+import com.sparta.orderservice.user.presentation.advice.UserException;
+
 public enum UserRoleEnum {
     USER(Authority.USER),  // 사용자 권한
     OWNER(Authority.OWNER), // 점주 권한
@@ -22,7 +25,7 @@ public enum UserRoleEnum {
             }
         }
 
-        throw new IllegalArgumentException("알 수 없는 권한 : " + authority);
+        throw new UserException(UserErrorCode.USER_UNKNOWN_AUTHORITY);
     }
 
     public static class Authority {
