@@ -77,7 +77,7 @@ public class StoreServiceV1 {
         return storeRepository.findStoreDetailById(storeId)
                 .orElseThrow(() -> new StoreException(
                         StoreErrorCode.STORE_NOT_FOUND,
-                        StoreExceptionLogUtils.getNotFoundMessage(storeId, null)
+                        StoreExceptionLogUtils.getNotFoundMessage(storeId)
                 ));
     }
 
@@ -87,7 +87,7 @@ public class StoreServiceV1 {
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new StoreException(
                         StoreErrorCode.STORE_NOT_FOUND,
-                        StoreExceptionLogUtils.getNotFoundMessage(storeId, null)
+                        StoreExceptionLogUtils.getNotFoundMessage(storeId, userId)
                 ));
 
         if (!hasPermission(user, store)) {
@@ -102,7 +102,7 @@ public class StoreServiceV1 {
             newCategory = categoryRepository.findById(request.getCategoryId())
                     .orElseThrow(() -> new CategoryException(
                             CategoryErrorCode.CATEGORY_NOT_FOUND,
-                            CategoryExceptionLogUtils.getNotFoundMessage(request.getCategoryId(), null)
+                            CategoryExceptionLogUtils.getNotFoundMessage(request.getCategoryId(), userId)
                     ));
         }
 
@@ -116,7 +116,7 @@ public class StoreServiceV1 {
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new StoreException(
                         StoreErrorCode.STORE_NOT_FOUND,
-                        StoreExceptionLogUtils.getNotFoundMessage(storeId, null)
+                        StoreExceptionLogUtils.getNotFoundMessage(storeId, userId)
                 ));
         if (!hasPermission(user, store)) {
             throw new StoreException(
