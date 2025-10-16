@@ -29,7 +29,7 @@ public class Payment {
     private PaymentMethodEnum method;
 
     @Column(name = "payment_amount", nullable = false)
-    private BigDecimal amount;
+    private Integer amount;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_status", nullable = false)
@@ -64,7 +64,7 @@ public class Payment {
         this.updatedAt = LocalDateTime.now();
     }
 
-    private Payment(PaymentMethodEnum method, BigDecimal amount, PaymentStatusEnum status, Order order, User user) {
+    private Payment(PaymentMethodEnum method, Integer amount, PaymentStatusEnum status, Order order, User user) {
         this.method = method;
         this.amount = amount;
         this.status = status;
@@ -72,7 +72,7 @@ public class Payment {
         this.user = user;
     }
 
-    public static Payment ofNewPayment(PaymentMethodEnum method, BigDecimal amount, PaymentStatusEnum status, Order order, User user) {
+    public static Payment ofNewPayment(PaymentMethodEnum method, Integer amount, PaymentStatusEnum status, Order order, User user) {
         return new Payment(method, amount, status, order, user);
     }
 

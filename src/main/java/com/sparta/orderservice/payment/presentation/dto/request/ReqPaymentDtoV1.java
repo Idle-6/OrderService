@@ -1,10 +1,11 @@
 package com.sparta.orderservice.payment.presentation.dto.request;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 @Getter
@@ -14,10 +15,10 @@ public class ReqPaymentDtoV1 {
 
     private UUID orderId;
 
-    private Long userId;
+    @NotNull(message = "결제 금액은 필수입니다.")
+    private Integer amount;
 
-    private BigDecimal amount;
-
+    @NotBlank(message = "결제 수단은 필수입니다.")
     private String payType;
 
     private String cardNumber;   // 카드 번호(카드 결제시)
@@ -26,6 +27,6 @@ public class ReqPaymentDtoV1 {
 
     private String cardCvc;      // 카드 CVC
 
-    private String pgToken;     // 결제사에서 보낸 Token
+    private String pgToken;     // 결제사에서 받은 Token(선택)
 
 }

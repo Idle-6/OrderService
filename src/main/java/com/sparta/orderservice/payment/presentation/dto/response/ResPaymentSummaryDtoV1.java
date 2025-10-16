@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -17,14 +16,14 @@ public class ResPaymentSummaryDtoV1 {
 
     private UUID paymentId;
 
-    private BigDecimal amount;
+    private Integer amount;
 
     private String status;
 
     private LocalDateTime paidAt;
 
     @QueryProjection
-    public ResPaymentSummaryDtoV1(UUID paymentId, BigDecimal amount, PaymentStatusEnum status, LocalDateTime paidAt) {
+    public ResPaymentSummaryDtoV1(UUID paymentId, Integer amount, PaymentStatusEnum status, LocalDateTime paidAt) {
         this.paymentId = paymentId;
         this.amount = amount;
         this.status = status.getDescription();
