@@ -7,8 +7,9 @@ import lombok.*;
 import java.util.UUID;
 
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
+@Table(name = "p_ordermenu")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderMenu {
 
     @Id
@@ -16,12 +17,15 @@ public class OrderMenu {
     private UUID orderMenuId;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id")
     private Order order;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private MenuEntity menu;
 
     private int orderMenuQty;
+
+    @Transient
     private int totalPrice;
 
     private OrderMenu(MenuEntity menu, int qty) {
