@@ -1,5 +1,6 @@
 package com.sparta.orderservice.order.presentation.controller;
 
+import com.sparta.orderservice.order.domain.entity.OrderStatus;
 import com.sparta.orderservice.order.presentation.dto.request.*;
 import com.sparta.orderservice.order.presentation.dto.response.*;
 import lombok.RequiredArgsConstructor;
@@ -17,19 +18,18 @@ import java.util.UUID;
 @RequestMapping("/v1/orders")
 public class OrderControllerV1 {
     // 주문 상세 조회
+
     @GetMapping("/{orderId}")
     public ResponseEntity<ResOrderDetailDtoV1> getOrder(@PathVariable UUID orderId) {
         ResOrderDetailDtoV1 orderDetailDto = new ResOrderDetailDtoV1(
                 orderId,
                 1001L,
                 UUID.randomUUID(),
-                "문 앞에 두고 가주세요",
+                "문 앞에 두고  가주세요",
                 25000,
-                "START",
+                OrderStatus.START,
                 LocalDateTime.now().minusDays(1),
-                LocalDateTime.now(),
-                1001L,
-                1001L
+                LocalDateTime.now()
         );
         return new ResponseEntity<>(orderDetailDto, HttpStatus.OK);
     }
@@ -42,8 +42,8 @@ public class OrderControllerV1 {
                                          @RequestParam(required = false, defaultValue = "true") boolean isAsc) {
 
         List<ResOrderDtoV1> orderList = Arrays.asList(
-                new ResOrderDtoV1(UUID.randomUUID(), 1001L, UUID.randomUUID(), 20000, "START", LocalDateTime.now().minusDays(2)),
-                new ResOrderDtoV1(UUID.randomUUID(), 1002L, UUID.randomUUID(), 35000, "COMPLETED", LocalDateTime.now().minusDays(1))
+                new ResOrderDtoV1(UUID.randomUUID(), 1001L, UUID.randomUUID(), 20000, OrderStatus.START, LocalDateTime.now().minusDays(2)),
+                new ResOrderDtoV1(UUID.randomUUID(), 1002L, UUID.randomUUID(), 35000, OrderStatus.COMPLETE, LocalDateTime.now().minusDays(1))
         );
         return new ResponseEntity<>(orderList, HttpStatus.OK);
     }
@@ -53,10 +53,10 @@ public class OrderControllerV1 {
     public ResponseEntity<ResOrderDtoV1> createOrder(@RequestBody ReqOrderDtoV1 request) {
         ResOrderDtoV1 createdOrder = new ResOrderDtoV1(
                 UUID.randomUUID(),
-                request.getUserId(),
-                UUID.fromString(request.getStoreId()),
+                request.getUserId().getUserId(),
+                UUID.randomUUID(),
                 request.getTotalPrice(),
-                "CREATED",
+                OrderStatus.CREATED,
                 LocalDateTime.now()
         );
         return new ResponseEntity<>(createdOrder, HttpStatus.OK);
@@ -70,7 +70,7 @@ public class OrderControllerV1 {
     ) {
         ResOrderUpdateDtoV1 updatedOrder = new ResOrderUpdateDtoV1(
                 orderId,
-                "ACCEPTED",
+                OrderStatus.ACCEPTED,
                 LocalDateTime.now()
         );
         return new ResponseEntity<>(updatedOrder, HttpStatus.OK);
@@ -83,7 +83,7 @@ public class OrderControllerV1 {
     ) {
         ResOrderCancelDtoV1 canceledOrder = new ResOrderCancelDtoV1(
                 UUID.randomUUID(),
-                "CANCELED",
+                OrderStatus.CREATED,
                 LocalDateTime.now()
         );
         return new ResponseEntity<>(canceledOrder, HttpStatus.OK);

@@ -1,4 +1,4 @@
-package com.sparta.orderservice.store.presentation.advice;
+package com.sparta.orderservice.payment.presentation.advice;
 
 import com.sparta.orderservice.global.presentation.advice.error.ErrorCodeIfs;
 import lombok.AllArgsConstructor;
@@ -7,10 +7,9 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @AllArgsConstructor
-public enum StoreErrorCode implements ErrorCodeIfs {
-    STORE_ALREADY_OWNED(HttpStatus.BAD_REQUEST, 1001, "이미 가게를 소유한 사용자입니다."),
-    STORE_FORBIDDEN(HttpStatus.FORBIDDEN, 1001, "가게 수정/삭제 권한이 없습니다."),
-    STORE_NOT_FOUND(HttpStatus.NOT_FOUND, 1001, "해당 가게를 찾을 수 없습니다.")
+public enum PaymentErrorCode implements ErrorCodeIfs {
+    PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, 1001, "결제 내역을 찾을 수 없습니다."),
+    PAYMENT_CANCEL_FORBIDDEN(HttpStatus.FORBIDDEN, 1001, "결제 취소 권한이 없습니다.")
     ;
 
     private final HttpStatus httpStatus;
