@@ -11,7 +11,7 @@ import java.util.UUID;
 public interface MenuRepository extends JpaRepository<MenuEntity, UUID> {
     Optional<MenuEntity> findByName(String name);
 
-    Page<MenuEntity> findAllByStoreId(UUID storeId, Pageable pageable);
+    Page<MenuEntity> findAllByStoreIdAndNameLike(UUID storeId, String search, Pageable pageable);
 
-    Page<MenuEntity> findAllByStoreIdAndIsPublicTrue(UUID storeId, Pageable pageable);
+    Page<MenuEntity> findAllByStoreIdAndIsPublicTrueAndNameLike(UUID storeId, String search, Pageable pageable);
 }
