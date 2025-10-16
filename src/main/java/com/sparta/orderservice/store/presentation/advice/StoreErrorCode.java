@@ -8,9 +8,9 @@ import org.springframework.http.HttpStatus;
 @Getter
 @AllArgsConstructor
 public enum StoreErrorCode implements ErrorCodeIfs {
-    STORE_ALREADY_OWNED(HttpStatus.BAD_REQUEST, 1001, "이미 가게를 소유한 사용자입니다."),
-    STORE_FORBIDDEN(HttpStatus.FORBIDDEN, 1001, "가게 수정/삭제 권한이 없습니다."),
-    STORE_NOT_FOUND(HttpStatus.NOT_FOUND, 1001, "해당 가게를 찾을 수 없습니다.")
+    STORE_ALREADY_OWNED(HttpStatus.BAD_REQUEST, 6001, "이미 가게를 소유한 사용자입니다."),
+    STORE_FORBIDDEN(HttpStatus.FORBIDDEN, 6001, "가게 수정/삭제 권한이 없습니다."),
+    STORE_NOT_FOUND(HttpStatus.NOT_FOUND, 6001, "해당 가게를 찾을 수 없습니다.")
     ;
 
     private final HttpStatus httpStatus;

@@ -90,7 +90,7 @@ public class StoreServiceV1 {
                         StoreExceptionLogUtils.getNotFoundMessage(storeId, null)
                 ));
 
-        if (!hasPermission(user, store, userId)) {
+        if (!hasPermission(user, store)) {
             throw new StoreException(
                     StoreErrorCode.STORE_FORBIDDEN,
                     StoreExceptionLogUtils.getUpdateForbiddenMessage(storeId, userId)
@@ -118,7 +118,7 @@ public class StoreServiceV1 {
                         StoreErrorCode.STORE_NOT_FOUND,
                         StoreExceptionLogUtils.getNotFoundMessage(storeId, null)
                 ));
-        if (!hasPermission(user, store, userId)) {
+        if (!hasPermission(user, store)) {
             throw new StoreException(
                     StoreErrorCode.STORE_FORBIDDEN,
                     StoreExceptionLogUtils.getDeleteForbiddenMessage(storeId, userId)
@@ -145,9 +145,10 @@ public class StoreServiceV1 {
         );
     }
 
-    private boolean hasPermission(User user, Store store, Long userId) {
+    private boolean hasPermission(User user, Store store) {
         boolean isAdmin = Objects.equals(user.getRole().getAuthority(), UserRoleEnum.ADMIN.getAuthority());
-        boolean isOwner = Objects.equals(store.getCreatedBy().getUserId(), userId);
+        boolean isOwner = Objects.equals(store.getCreatedBy().getUserId(), user.getUserId());
+
         return isAdmin || isOwner;
     }
 }
