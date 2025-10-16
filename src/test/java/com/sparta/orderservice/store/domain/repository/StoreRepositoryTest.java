@@ -1,6 +1,7 @@
 package com.sparta.orderservice.store.domain.repository;
 
 import com.sparta.orderservice.category.domain.entity.Category;
+import com.sparta.orderservice.global.infrastructure.querydsl.QuerydslConfig;
 import com.sparta.orderservice.store.domain.entity.Store;
 import com.sparta.orderservice.store.presentation.dto.SearchParam;
 import com.sparta.orderservice.store.presentation.dto.request.ReqStoreUpdateDtoV1;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
@@ -25,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ActiveProfiles("test")
 @DataJpaTest
+@Import(QuerydslConfig.class)
 class StoreRepositoryTest {
 
     @Autowired
