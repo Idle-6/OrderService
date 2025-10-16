@@ -5,6 +5,7 @@ import com.sparta.orderservice.manage.presentation.dto.response.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -45,18 +46,20 @@ public class ManageControllerV1 {
     /* 회원 비활성화 */
     @PostMapping("/users/{userId}/deactive")
     public ResponseEntity<?> userDeactive(
+            @AuthenticationPrincipal Long adminId,
             @PathVariable Long userId
     ){
-        manageService.userDeactive(userId);
+        manageService.userDeactive(adminId, userId);
         return ResponseEntity.ok("회원 비활성화 완료");
     }
 
     /* 회원 활성화 */
     @PostMapping("/users/{userId}/active")
     public ResponseEntity<?> userActive(
+            @AuthenticationPrincipal Long adminId,
             @PathVariable Long userId
     ){
-        manageService.userActive(userId);
+        manageService.userActive(adminId, userId);
         return ResponseEntity.ok("회원 활성화 완료");
     }
 
@@ -85,18 +88,20 @@ public class ManageControllerV1 {
     /* 가게 비활성화 */
     @PostMapping("/stores/{storeId}/deactive")
     public ResponseEntity<?> storeDeactive(
+            @AuthenticationPrincipal Long adminId,
             @PathVariable UUID storeId
     ){
-        manageService.storeDeactive(storeId);
+        manageService.storeDeactive(adminId, storeId);
         return ResponseEntity.ok("가게 비활성화 완료");
     }
 
     /* 가게 활성화 */
     @PostMapping("/stores/{storeId}/active")
     public ResponseEntity<?> storeActive(
+            @AuthenticationPrincipal Long adminId,
             @PathVariable UUID storeId
     ){
-        manageService.storeActive(storeId);
+        manageService.storeActive(adminId, storeId);
         return ResponseEntity.ok("가게 활성화 완료");
     }
 
@@ -116,7 +121,7 @@ public class ManageControllerV1 {
     /* 주문 상세 조회 */
     @GetMapping("/orders/{orderId}")
     public ResponseEntity<ResOrderDetailDtoV1> getOrder(
-            @PathVariable Integer orderId
+            @PathVariable UUID orderId
     ){
         ResOrderDetailDtoV1 orderDetail = manageService.getOrder(orderId);
         return ResponseEntity.ok(orderDetail);

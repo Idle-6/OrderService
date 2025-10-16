@@ -1,8 +1,11 @@
 package com.sparta.orderservice.manage.application.service;
 
+import com.sparta.orderservice.manage.domain.repository.ManageOrderRepository;
 import com.sparta.orderservice.manage.domain.repository.ManageStoreRepository;
 import com.sparta.orderservice.manage.domain.repository.ManageUserRepository;
 import com.sparta.orderservice.manage.presentation.dto.response.*;
+import com.sparta.orderservice.order.domain.entity.Order;
+import com.sparta.orderservice.order.domain.entity.OrderStatus;
 import com.sparta.orderservice.store.domain.entity.Store;
 import com.sparta.orderservice.user.domain.entity.User;
 import lombok.RequiredArgsConstructor;
@@ -10,10 +13,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import jakarta.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,13 +32,12 @@ public class ManageServiceV1 {
 
     private final ManageUserRepository userRepository;
     private final ManageStoreRepository storeRepository;
-//    private final ManageOrderRepository orderRepository;
+    private final ManageOrderRepository orderRepository;
 
 
     private Pageable toPageable(int page, int pageSize, String sortBy, boolean isAsc) {
         int pageIndex = Math.max(page - 1, 0);
         int size = Math.min(Math.max(pageSize, 1), 100);
-
         Sort sort = Sort.by(isAsc ? Sort.Direction.ASC : Sort.Direction.DESC, sortBy);
         return PageRequest.of(pageIndex, size, sort);
     }
@@ -64,10 +68,13 @@ public class ManageServiceV1 {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. userId=" + userId));
 
-        // ============================
-        // 주문 리스트는 추가 예정 !!!!!!!!!
-        List<orderDtoV1> orderList = new ArrayList<>();
-        // =============================
+        List<Order> orders = orderRepository.findByUser_UserId(userId);
+
+        List<orderDtoV1> orderList = orders.stream()
+                .map(order -> new orderDtoV1(
+                        order.getOrderId().toString()
+                ))
+                .toList();
 
         return ResUserDetailDtoV1.builder()
                 .userId(String.valueOf(user.getUserId()))
@@ -85,12 +92,11 @@ public class ManageServiceV1 {
 
     /* 회원 비활성화 */
     @Transactional
-    public void userDeactive(Long userId) {
+    public void userDeactive(Long adminId, Long userId) {
         int updated = userRepository.deactivate(
                 userId,
                 LocalDateTime.now(),
-                userId // 관리자 ID로 수정 !!!!!!!
-                //=============================================================
+                adminId
         );
         if (updated == 0) {
             throw new IllegalArgumentException("해당 사용자가 존재하지 않습니다. userId=" + userId);
@@ -99,12 +105,11 @@ public class ManageServiceV1 {
 
     /* 회원 활성화 */
     @Transactional
-    public void userActive(Long userId) {
+    public void userActive(Long adminId, Long userId) {
         int updated = userRepository.activate(
                 userId,
                 LocalDateTime.now(),
-                userId // 관리자 ID로 수정 !!!!!!!
-                //=============================================================
+                adminId
         );
         if (updated == 0) {
             throw new IllegalArgumentException("해당 사용자가 존재하지 않습니다. userId=" + userId);
@@ -162,12 +167,11 @@ public class ManageServiceV1 {
 
     /* 가게 비활성화 */
     @Transactional
-    public void storeDeactive(UUID storeId) {
+    public void storeDeactive(Long adminId, UUID storeId) {
         int updated = storeRepository.deactivateStore(
                 storeId,
                 LocalDateTime.now(),
-                1L // 관리자 ID로 수정 !!!!!!!
-                //=============================================================
+                adminId
         );
 
         if (updated == 0) {
@@ -177,12 +181,11 @@ public class ManageServiceV1 {
 
     /* 가게 활성화 */
     @Transactional
-    public void storeActive(UUID storeId) {
+    public void storeActive(Long adminId, UUID storeId) {
         int updated = storeRepository.activateStore(
                 storeId,
                 LocalDateTime.now(),
-                1L // 관리자 ID로 수정 !!!!!!!
-                //=============================================================
+                adminId
         );
 
         if (updated == 0) {
@@ -192,33 +195,50 @@ public class ManageServiceV1 {
 
     /* 주문 리스트 조회 */
     public List<ResOrderDtoV1> getOrderList(String search, int page, int pageSize, String sortBy, boolean isAsc) {
-        List<ResOrderDtoV1> orderDtoList = new ArrayList<>();
+        Pageable pageable = toPageable(page, pageSize, sortBy, isAsc);
 
-        orderDtoList.add(ResOrderDtoV1.builder()
-                .orderId("O1001")
-                .customerId("123")
-                .storeId("S001")
-                .totalPrice(25000)
-                .orderStatus("주문완료")
-                .createdAt(LocalDateTime.now().minusDays(1))
-                .build()
-        );
+        Specification<Order> spec = buildOrderSearchSpec(search);
 
-        orderDtoList.add(ResOrderDtoV1.builder()
-                .orderId("O1002")
-                .customerId("456")
-                .storeId("S002")
-                .totalPrice(18000)
-                .orderStatus("배송중")
-                .createdAt(LocalDateTime.now().minusHours(10))
-                .build()
-        );
+        Page<Order> result = orderRepository.findAll(spec, pageable);
 
-        return orderDtoList;
+        return result.stream()
+                .map(this::toResOrderDto) // 엔티티 -> 목록 DTO
+                .collect(Collectors.toList());
+    }
+
+    private Specification<Order> buildOrderSearchSpec(String search) {
+        if (!StringUtils.hasText(search)) return (root, query, cb) -> cb.conjunction();
+
+        return (root, query, cb) -> {
+            List<Predicate> orList = new ArrayList<>();
+
+            try { // orderId(UUID) 정확일치 시도
+                UUID oid = UUID.fromString(search.trim());
+                orList.add(cb.equal(root.get("orderId"), oid));
+            } catch (IllegalArgumentException ignore) {}
+
+            // 이름, 가게, 메세지로 검색
+            orList.add(cb.like(cb.lower(root.get("user").get("name")), "%" + search.toLowerCase() + "%"));
+            orList.add(cb.like(cb.lower(root.get("store").get("name")), "%" + search.toLowerCase() + "%"));
+            orList.add(cb.like(cb.lower(root.get("orderMessage")), "%" + search.toLowerCase() + "%"));
+
+            return cb.or(orList.toArray(new Predicate[0]));
+        };
+    }
+
+    private ResOrderDtoV1 toResOrderDto(Order order) {
+        return ResOrderDtoV1.builder()
+                .orderId(order.getOrderId().toString())
+                .customerId(order.getUser() != null ? String.valueOf(order.getUser().getUserId()) : null)
+                .storeId(order.getStore() != null ? order.getStore().getStoreId().toString() : null)
+                .totalPrice(order.getTotalPrice())
+                .orderStatus(order.getOrderStatus().toString())
+                .createdAt(order.getCreatedAt())
+                .build();
     }
 
     /* 주문 상세 조회 */
-    public ResOrderDetailDtoV1 getOrder(Integer orderId) {
+    public ResOrderDetailDtoV1 getOrder(UUID orderId) {
         ResOrderDetailDtoV1 orderDetail = ResOrderDetailDtoV1.builder()
                 .orderId(orderId.toString())
                 .customerId("123")
