@@ -6,6 +6,9 @@ import com.sparta.orderservice.order.domain.entity.Order;
 import com.sparta.orderservice.order.domain.entity.OrderMenu;
 import com.sparta.orderservice.order.domain.entity.OrderStatus;
 import com.sparta.orderservice.order.domain.repository.OrderRepository;
+import com.sparta.orderservice.order.presentation.advice.OrderErrorCode;
+import com.sparta.orderservice.order.presentation.advice.OrderException;
+import com.sparta.orderservice.order.presentation.advice.OrderExceptionLogUtils;
 import com.sparta.orderservice.order.presentation.dto.SearchParam;
 import com.sparta.orderservice.order.presentation.dto.request.ReqOrderDtoV1;
 import com.sparta.orderservice.order.presentation.dto.request.ReqOrderMenuDtoV1;
@@ -15,7 +18,11 @@ import com.sparta.orderservice.order.presentation.dto.response.ResOrderDtoV1;
 import com.sparta.orderservice.order.presentation.dto.response.ResOrderUpdateDtoV1;
 import com.sparta.orderservice.store.domain.entity.Store;
 import com.sparta.orderservice.store.domain.repository.StoreRepository;
+import com.sparta.orderservice.store.presentation.advice.StoreErrorCode;
+import com.sparta.orderservice.store.presentation.advice.StoreException;
+import com.sparta.orderservice.store.presentation.advice.StoreExceptionLogUtils;
 import com.sparta.orderservice.user.domain.entity.User;
+import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
 import com.sparta.orderservice.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -31,17 +39,18 @@ import java.util.UUID;
 public class OrderServiceV1 {
 
     private final OrderRepository orderRepository;
-    private final UserRepository userRepository;
     private final StoreRepository storeRepository;
     private final MenuRepository menuRepository;
+    private final UserRepository userRepository;
 
     // 주문 생성
     @Transactional
     public ResOrderDtoV1 createOrder(ReqOrderDtoV1 request) {
-        User user = userRepository.findById(request.getUserId().getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
         Store store = storeRepository.findById(request.getStoreId().getStoreId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 가게입니다."));
+                .orElseThrow(() -> new StoreException(
+                        StoreErrorCode.STORE_NOT_FOUND,
+                        StoreExceptionLogUtils.getNotFoundMessage(request.getStoreId().getStoreId(), null)
+                ));
 
         // 주문 생성 (totalPrice 초기값 0으로)
         Order order = Order.ofNewOrder(
@@ -88,13 +97,16 @@ public class OrderServiceV1 {
     // 주문 상세 조회
     @Transactional(readOnly = true)
     public ResOrderDetailDtoV1 getOrderDetail(UUID orderId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("해당 주문을 찾을 수 없습니다."));
+        ResOrderDetailDtoV1 order = orderRepository.findOrderDetailById(orderId)
+                .orElseThrow(() -> new OrderException(
+                        OrderErrorCode.ORDER_NOT_FOUND,
+                        OrderExceptionLogUtils.getNotFoundMessage(orderId, null)
+                ));
 
         // 주문 메뉴 DTO로 변환
         List<ReqOrderMenuDtoV1> orderMenus = order.getOrderMenus().stream()
                 .map(om -> new ReqOrderMenuDtoV1(
-                        om.getMenu().getId(),
+                        om.getMenuId(),
                         om.getOrderMenuQty()
                 ))
                 .toList();
@@ -104,8 +116,8 @@ public class OrderServiceV1 {
                 order.getOrderMessage(),
                 order.getTotalPrice(),
                 order.getOrderStatus(),
-                order.getStore().getName(),
-                order.getStore().getDescription(),
+                order.getStoreName(),
+                order.getStoreDesc(),
                 orderMenus,
                 order.getCreatedAt(),
                 order.getUpdatedAt()
@@ -114,9 +126,21 @@ public class OrderServiceV1 {
 
     // 주문 상태 변경
     @Transactional
-    public ResOrderUpdateDtoV1 updateOrderStatus(UUID orderId, OrderStatus orderStatus) {
+    public ResOrderUpdateDtoV1 updateOrderStatus(UUID orderId, OrderStatus orderStatus, User user) {
+        Long userId = user.getUserId();
+
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("해당 주문을 찾을 수 없습니다."));
+                .orElseThrow(() -> new OrderException(
+                        OrderErrorCode.ORDER_NOT_FOUND,
+                        OrderExceptionLogUtils.getNotFoundMessage(orderId, null)
+                ));
+
+        if (!hasPermission(user, order)) {
+            throw new OrderException(
+                    OrderErrorCode.ORDER_UPDATE_FORBIDDEN,
+                    OrderExceptionLogUtils.getUpdateForbiddenMessage(orderId, userId)
+            );
+        }
 
         order.updateOrderStatus(orderStatus, null);
         orderRepository.save(order);
@@ -130,14 +154,27 @@ public class OrderServiceV1 {
 
     // 주문 취소
     @Transactional
-    public ResOrderCancelDtoV1 cancelOrder(UUID orderId) {
+    public ResOrderCancelDtoV1 cancelOrder(UUID orderId, User user) {
+        Long userId = user.getUserId();
+
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("해당 주문을 찾을 수 없습니다."));
+                .orElseThrow(() -> new OrderException(
+                        OrderErrorCode.ORDER_NOT_FOUND,
+                        OrderExceptionLogUtils.getNotFoundMessage(orderId, null)
+                ));
+
+        if (!hasPermission(user, order)) {
+            throw new OrderException(
+                    OrderErrorCode.ORDER_UPDATE_FORBIDDEN,
+                    OrderExceptionLogUtils.getUpdateForbiddenMessage(orderId, userId)
+            );
+        }
 
         // 가게에서 주문 수락 전일 때만 취소 가능
         if (order.getOrderStatus() != OrderStatus.CREATED) {
-            throw new IllegalStateException(
-                    String.format("주문 수락 이후에는 취소할 수 없습니다. 현재 상태: %s", order.getOrderStatus())
+            throw new OrderException(
+                    OrderErrorCode.ORDER_CANCEL_FORBIDDEN,
+                    OrderExceptionLogUtils.getUpdateForbiddenMessage(orderId, userId)
             );
         }
 
@@ -151,6 +188,12 @@ public class OrderServiceV1 {
                 order.getOrderStatus(),
                 order.getUpdatedAt()
         );
+    }
+
+    private boolean hasPermission(User user, Order order) {
+        boolean isAdmin = Objects.equals(user.getRole().getAuthority(), UserRoleEnum.ADMIN.getAuthority());
+        boolean isOwner = Objects.equals(order.getCreatedBy().getUserId(), user.getUserId());
+        return isAdmin || isOwner;
     }
 
 }

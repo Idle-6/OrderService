@@ -59,7 +59,7 @@ public class OrderServiceV1Test {
     @Mock
     StoreRepository storeRepository;
 
-    User admin;
+    User user;
     Category category;
     Store store;
     Order order;
@@ -70,18 +70,18 @@ public class OrderServiceV1Test {
 
     @BeforeEach
     void setUp() {
-        admin = User.builder().email("user1@test.com").password("password1").name("김철수").address("서울 강남구").role(UserRoleEnum.USER).isActive(true).build();
-        ReflectionTestUtils.setField(admin, "userId", 1L);
+        user = User.builder().email("user1@test.com").password("password1").name("김철수").address("서울 강남구").role(UserRoleEnum.USER).isActive(true).build();
+        ReflectionTestUtils.setField(user, "userId", 1L);
 
-        category = Category.ofNewCategory("한식", admin.getUserId());
+        category = Category.ofNewCategory("한식", user.getUserId());
         categoryId = UUID.randomUUID();
         ReflectionTestUtils.setField(category, "categoryId", categoryId);
 
-        store = Store.ofNewStore("가게이름1", "123-45-67890", "010-1111-1111", "서울 강남구 역삼동", "맛있는 한식", true, category, admin);
+        store = Store.ofNewStore("가게이름1", "123-45-67890", "010-1111-1111", "서울 강남구 역삼동", "맛있는 한식", true, category, user);
         storeId = UUID.randomUUID();
         ReflectionTestUtils.setField(store, "storeId", storeId);
 
-        order = Order.ofNewOrder(admin, store, 15000, "문 앞에 두고 가주세요", admin);
+        order = Order.ofNewOrder(user, store, 15000, "문 앞에 두고 가주세요", user);
         orderId = UUID.randomUUID();
         ReflectionTestUtils.setField(order, "orderId", orderId);
 
@@ -117,16 +117,14 @@ public class OrderServiceV1Test {
 
         when(menuRepository.findById(menuId1)).thenReturn(Optional.of(menu1));
         when(menuRepository.findById(menuId2)).thenReturn(Optional.of(menu2));
-        when(userRepository.findById(admin.getUserId())).thenReturn(Optional.of(admin));
         when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
 
-        ReqOrderDtoV1 request = new ReqOrderDtoV1(0, "배고파요", OrderStatus.CREATED, store, admin, orderMenus);
+        ReqOrderDtoV1 request = new ReqOrderDtoV1(0, "배고파요", OrderStatus.CREATED, store, user, orderMenus);
 
         ResOrderDtoV1 response = orderServiceV1.createOrder(request);
 
         verify(menuRepository, Mockito.times(1)).findById(menuId1);
         verify(menuRepository, Mockito.times(1)).findById(menuId2);
-        verify(userRepository, Mockito.times(1)).findById(admin.getUserId());
         verify(storeRepository, Mockito.times(1)).findById(storeId);
         verify(orderRepository, Mockito.times(1)).save(Mockito.any(Order.class));
 
@@ -147,7 +145,7 @@ public class OrderServiceV1Test {
     }
 
     @Test
-    @DisplayName("주문 조회")
+    @DisplayName("주문 상세 조회")
     void getOrder() {
         UUID orderId = UUID.randomUUID();
         ResOrderDetailDtoV1 response = new ResOrderDetailDtoV1(orderId, "배고파서 현기증 나요", 30000, OrderStatus.START, store.getName(), store.getDescription(), orderMenus, LocalDateTime.now(), LocalDateTime.now());
@@ -163,7 +161,7 @@ public class OrderServiceV1Test {
     void updateStore() {
         when(orderRepository.findById(Mockito.any())).thenReturn(Optional.of(order));
 
-        orderServiceV1.updateOrderStatus(orderId, OrderStatus.ACCEPTED);
+        orderServiceV1.updateOrderStatus(orderId, OrderStatus.ACCEPTED, user);
 
         verify(orderRepository, Mockito.times(1)).findById(Mockito.any());
     }
@@ -173,7 +171,7 @@ public class OrderServiceV1Test {
     void deleteStore() {
         when(orderRepository.findById(Mockito.any())).thenReturn(Optional.of(order));
 
-        orderServiceV1.cancelOrder(orderId);
+        orderServiceV1.cancelOrder(orderId, user);
 
         verify(orderRepository, Mockito.times(1)).findById(Mockito.any());
     }

@@ -1,5 +1,6 @@
 package com.sparta.orderservice.order.presentation.controller;
 
+import com.sparta.orderservice.global.infrastructure.security.UserDetailsImpl;
 import com.sparta.orderservice.order.application.service.OrderServiceV1;
 import com.sparta.orderservice.order.domain.entity.OrderStatus;
 import com.sparta.orderservice.order.presentation.dto.request.*;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -53,18 +55,20 @@ public class OrderControllerV1 {
     @PatchMapping("/{orderId}/{orderStatus}")
     public ResponseEntity<ResOrderUpdateDtoV1> updateOrderStatus(
             @PathVariable UUID orderId,
-            @PathVariable OrderStatus orderStatus
+            @PathVariable OrderStatus orderStatus,
+            @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        ResOrderUpdateDtoV1 response = orderService.updateOrderStatus(orderId, orderStatus);
+        ResOrderUpdateDtoV1 response = orderService.updateOrderStatus(orderId, orderStatus, userDetails.getUser());
         return ResponseEntity.ok(response);
     }
 
     // 주문 취소
     @PostMapping("/{orderId}/cancel")
     public ResponseEntity<ResOrderCancelDtoV1> cancelOrder(
-            @PathVariable UUID orderId
+            @PathVariable UUID orderId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        ResOrderCancelDtoV1 response = orderService.cancelOrder(orderId);
+        ResOrderCancelDtoV1 response = orderService.cancelOrder(orderId, userDetails.getUser());
         return ResponseEntity.ok(response);
     }
 
