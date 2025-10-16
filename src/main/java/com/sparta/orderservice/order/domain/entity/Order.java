@@ -1,5 +1,6 @@
 package com.sparta.orderservice.order.domain.entity;
 
+import com.sparta.orderservice.menu.domain.entity.MenuEntity;
 import com.sparta.orderservice.store.domain.entity.Store;
 import com.sparta.orderservice.user.domain.entity.User;
 import jakarta.persistence.*;
@@ -8,6 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -55,6 +58,10 @@ public class Order {
     @JoinColumn(name = "store_id", nullable = false)
     private Store store;
 
+    // OrderMenu 리스트
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderMenu> orderMenus = new ArrayList<>();
+
 
     @PrePersist
     public void prePersist() {
@@ -76,9 +83,20 @@ public class Order {
         this.createdBy = createdBy;
     }
 
+
     public static Order ofNewOrder(User user, Store store, Integer totalPrice, String orderMessage, User createdBy) {
         return new Order(user, store, totalPrice, orderMessage, createdBy);
     }
+
+    public void addOrderMenu(OrderMenu orderMenu) {
+        this.orderMenus.add(orderMenu);
+        orderMenu.setOrder(this);
+    }
+
+    public void updateTotalPrice(int totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
 
     public void updateOrderStatus(OrderStatus orderStatus, Long updatedBy) {
         this.orderStatus = orderStatus;
@@ -89,6 +107,8 @@ public class Order {
         this.orderStatus = OrderStatus.CANCELED;
         this.updatedBy = updatedBy;
     }
+
+
 }
 
 

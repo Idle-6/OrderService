@@ -23,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -37,24 +38,45 @@ public class OrderServiceV1 {
     // 주문 생성
     @Transactional
     public ResOrderDtoV1 createOrder(ReqOrderDtoV1 request) {
-        // todo : 회원, 가게 조회
+        User user = userRepository.findById(request.getUserId().getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+        Store store = storeRepository.findById(request.getStoreId().getStoreId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 가게입니다."));
 
+        // 주문 생성 (totalPrice 초기값 0으로)
         Order order = Order.ofNewOrder(
                 request.getUserId(),
                 request.getStoreId(),
-                request.getTotalPrice(),
+                0,
                 request.getOrderMessage(),
-                null );
+                request.getUserId()
+        );
+
+        int totalPrice = 0;
+
+        // 주문메뉴 테이블에 수량 추가 및 총 금액 계산
+        for (ReqOrderMenuDtoV1 menuDto : request.getOrderMenus()) {
+            MenuEntity menu = menuRepository.findById(menuDto.getMenuId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 메뉴입니다."));
+
+            OrderMenu orderMenu = OrderMenu.ofNew(order, menu, menuDto.getOrderMenuQty());
+            order.addOrderMenu(orderMenu);
+            totalPrice += orderMenu.getTotalPrice();
+        }
+
+        // 주문 테이블에 총 금액 업데이트
+        order.updateTotalPrice(totalPrice);
 
         orderRepository.save(order);
 
         return new ResOrderDtoV1(
                 order.getOrderId(),
-                order.getUser().getUserId(),
-                order.getStore().getStoreId(),
                 order.getTotalPrice(),
                 order.getOrderStatus(),
-                order.getCreatedAt() );
+                store.getName(),
+                store.getDescription(),
+                order.getCreatedAt()
+        );
     }
 
     // 주문 리스트 조회
@@ -66,8 +88,28 @@ public class OrderServiceV1 {
     // 주문 상세 조회
     @Transactional(readOnly = true)
     public ResOrderDetailDtoV1 getOrderDetail(UUID orderId) {
-        return orderRepository.findOrderDetailById(orderId)
+        Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("해당 주문을 찾을 수 없습니다."));
+
+        // 주문 메뉴 DTO로 변환
+        List<ReqOrderMenuDtoV1> orderMenus = order.getOrderMenus().stream()
+                .map(om -> new ReqOrderMenuDtoV1(
+                        om.getMenu().getId(),
+                        om.getOrderMenuQty()
+                ))
+                .toList();
+
+        return new ResOrderDetailDtoV1(
+                order.getOrderId(),
+                order.getOrderMessage(),
+                order.getTotalPrice(),
+                order.getOrderStatus(),
+                order.getStore().getName(),
+                order.getStore().getDescription(),
+                orderMenus,
+                order.getCreatedAt(),
+                order.getUpdatedAt()
+        );
     }
 
     // 주문 상태 변경
