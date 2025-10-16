@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -76,6 +77,9 @@ public class SecurityConfig {
                         .requestMatchers("/").permitAll() // 메인 페이지 요청 허가
                         .requestMatchers("/v1/auth/**").permitAll() // '/v1/auth/'로 시작하는 요청 모두 접근 허가
                         .requestMatchers("/v1/users/sign-up").permitAll() // 회원가입 요청 접근 허가
+                        .requestMatchers(HttpMethod.POST, "/v1/categorys/**").hasRole(UserRoleEnum.ADMIN.getAuthority())
+                        .requestMatchers(HttpMethod.PATCH, "/v1/categorys/**").hasRole(UserRoleEnum.ADMIN.getAuthority())
+                        .requestMatchers(HttpMethod.DELETE, "/v1/categorys/**").hasRole(UserRoleEnum.ADMIN.getAuthority())
                         .anyRequest().authenticated() // 그 외 모든 요청 인증처리
         );
 
