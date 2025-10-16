@@ -48,7 +48,7 @@ class CategoryServiceV1Test {
     @DisplayName("카테고리 생성")
     void createCategory() {
         ReqCategoryDtoV1 request = new ReqCategoryDtoV1("중식");
-        categoryService.createCategory(request);
+        categoryService.createCategory(request, 1L);
 
         verify(categoryRepository, Mockito.times(1)).save(Mockito.any(Category.class));
     }
@@ -60,7 +60,7 @@ class CategoryServiceV1Test {
         when(categoryRepository.existsByName(request.getName())).thenReturn(true);
 
         assertThrows(CategoryException.class, () ->
-                categoryService.createCategory(request)
+                categoryService.createCategory(request, 1L)
         );
 
         verify(categoryRepository, Mockito.never()).save(Mockito.any(Category.class));
@@ -105,7 +105,7 @@ class CategoryServiceV1Test {
         ReqCategoryUpdateDtoV1 request = new ReqCategoryUpdateDtoV1("양식");
         when(categoryRepository.findById(Mockito.any())).thenReturn(Optional.of(category));
 
-        categoryService.updateCategory(categoryId, request);
+        categoryService.updateCategory(categoryId, request, 1L);
 
         verify(categoryRepository, Mockito.times(1)).findById(Mockito.any());
     }
@@ -117,7 +117,7 @@ class CategoryServiceV1Test {
         when(categoryRepository.findById(Mockito.any())).thenReturn(Optional.empty());
 
         assertThrows(CategoryException.class, () ->
-            categoryService.updateCategory(categoryId, request)
+            categoryService.updateCategory(categoryId, request, 1L)
         );
 
     }
@@ -129,7 +129,7 @@ class CategoryServiceV1Test {
         when(categoryRepository.existsByName(request.getName())).thenReturn(true);
 
         assertThrows(CategoryException.class, () ->
-            categoryService.updateCategory(categoryId, request)
+            categoryService.updateCategory(categoryId, request, 1L)
         );
 
     }
@@ -138,7 +138,7 @@ class CategoryServiceV1Test {
     @DisplayName("카테고리 삭제")
     void deleteCategory() {
         when(categoryRepository.findById(Mockito.any())).thenReturn(Optional.of(category));
-        categoryService.deleteCategory(categoryId);
+        categoryService.deleteCategory(categoryId, 1L);
 
         assertAll(() -> {
             assertNotNull(category.getDeletedAt());
