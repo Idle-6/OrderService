@@ -3,6 +3,11 @@ package com.sparta.orderservice.category.presentation.advice;
 import java.util.UUID;
 
 public class CategoryExceptionLogUtils {
+
+    public static String getNotFoundMessage(UUID categoryId) {
+        return "카테고리 없음: categoryId=%s".formatted(categoryId);
+    }
+
     public static String getNotFoundMessage(UUID categoryId, Long userId) {
         return "카테고리 없음: categoryId=%s, 요청 사용자 ID=%s".formatted(categoryId, userId);
     }

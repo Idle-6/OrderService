@@ -19,7 +19,7 @@ public class Category {
     @Column(name = "category_id", updatable = false, nullable = false)
     private UUID categoryId;
 
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     private String name;
 
     @Column(updatable = false, nullable = false)
