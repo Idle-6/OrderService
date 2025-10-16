@@ -21,10 +21,11 @@ class JwtUtilTest {
     void accessTokenCreateTest() {
         // given
         String username = "testUser";
+        long userId = 1L;
         UserRoleEnum role = UserRoleEnum.USER;
 
         // when
-        String accessToken = jwtUtil.createAccessToken(username, role);
+        String accessToken = jwtUtil.createAccessToken(username, userId, role);
         String tokenValue = jwtUtil.substringToken(accessToken);
 
         // then
@@ -41,9 +42,10 @@ class JwtUtilTest {
     void refreshTokenCreateTest() {
         // given
         String username = "testUser";
+        long userId = 1L;
 
         // when
-        String refreshToken = jwtUtil.createRefreshToken(username);
+        String refreshToken = jwtUtil.createRefreshToken(username, userId);
 
         // then
         assertThat(jwtUtil.validateToken(refreshToken, false)).isTrue();
@@ -60,8 +62,9 @@ class JwtUtilTest {
         // given
         String username = "expiredUser";
         UserRoleEnum role = UserRoleEnum.USER;
+        long userId = 1L;
 
-        String accessToken = jwtUtil.createAccessToken(username, role);
+        String accessToken = jwtUtil.createAccessToken(username, userId, role);
         String tokenValue = jwtUtil.substringToken(accessToken);
 
         // when (1초 뒤 만료되도록 yml 설정했으니 sleep)

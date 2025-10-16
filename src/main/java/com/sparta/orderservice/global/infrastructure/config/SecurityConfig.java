@@ -1,12 +1,12 @@
 package com.sparta.orderservice.global.infrastructure.config;
 
 import com.sparta.orderservice.auth.infrastructure.util.JwtUtil;
-import com.sparta.orderservice.auth.infrastructure.util.TokenBlacklistMemoryStore;
 import com.sparta.orderservice.global.infrastructure.security.JwtAuthenticationFilter;
 import com.sparta.orderservice.global.infrastructure.security.JwtAuthorizationFilter;
 import com.sparta.orderservice.global.infrastructure.security.JwtLogoutHandler;
 import com.sparta.orderservice.global.infrastructure.security.UserDetailsServiceImpl;
-import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
+import com.sparta.orderservice.user.domain.repository.UserRepository;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -30,7 +30,7 @@ public class SecurityConfig {
     private final JwtUtil jwtUtil;
     private final AuthenticationConfiguration authenticationConfiguration;
     private final UserDetailsServiceImpl userDetailsService;
-    private final TokenBlacklistMemoryStore tokenBlacklistMemoryStore;
+    private final UserRepository userRepository;
 
     @Bean
     // 비밀번호 암호화 인코더
@@ -53,12 +53,12 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthorizationFilter jwtAuthorizationFilter() {
-        return new JwtAuthorizationFilter(jwtUtil, userDetailsService, tokenBlacklistMemoryStore);
+        return new JwtAuthorizationFilter(jwtUtil, userDetailsService);
     }
 
     @Bean
     public JwtLogoutHandler jwtLogoutHandler() {
-        return new JwtLogoutHandler(jwtUtil, tokenBlacklistMemoryStore);
+        return new JwtLogoutHandler(jwtUtil, userRepository);
     }
 
     @Bean
@@ -90,8 +90,11 @@ public class SecurityConfig {
         http.logout(logout -> logout
                 .logoutUrl("/v1/auth/logout")
                 .addLogoutHandler(jwtLogoutHandler())
-                .logoutSuccessHandler((request, response, auth) ->
-                        response.sendRedirect("/"))
+                .logoutSuccessHandler((request, response, auth) ->{
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"message\": \"로그아웃 되었습니다.\"}");
+                })
         );
 
         // 필터 관리

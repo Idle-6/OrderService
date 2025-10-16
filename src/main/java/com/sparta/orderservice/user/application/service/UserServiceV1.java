@@ -1,10 +1,11 @@
 package com.sparta.orderservice.user.application.service;
 
 import com.sparta.orderservice.auth.infrastructure.util.JwtUtil;
-import com.sparta.orderservice.auth.infrastructure.util.TokenBlacklistMemoryStore;
 import com.sparta.orderservice.user.domain.entity.User;
 import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
 import com.sparta.orderservice.user.domain.repository.UserRepository;
+import com.sparta.orderservice.user.presentation.advice.UserErrorCode;
+import com.sparta.orderservice.user.presentation.advice.UserException;
 import com.sparta.orderservice.user.presentation.dto.request.ReqPasswordUpdateDtoV1;
 import com.sparta.orderservice.user.presentation.dto.request.ReqSignupDtoV1;
 import com.sparta.orderservice.user.presentation.dto.request.ReqUserUpdateDtoV1;
@@ -26,7 +27,6 @@ public class UserServiceV1 {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-    private final TokenBlacklistMemoryStore tokenBlacklistMemoryStore;
 
     private final String ADMIN_TOKEN = "FcurV51GZOIh6uOGuhyg6dG3odIYYsRM0";
 
@@ -37,18 +37,16 @@ public class UserServiceV1 {
         // 회원 중복 확인(email)
         Optional<User> checkEmail = userRepository.findByEmail(email);
         if (checkEmail.isPresent()) {
-            throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
+            throw new UserException(UserErrorCode.USER_DUPLICATE_EMAIL);
         }
 
         // 사용자 ROLE 확인
-        UserRoleEnum role = UserRoleEnum.USER;
+        UserRoleEnum role = UserRoleEnum.fromAuthority(requestDto.getRole());
         if (requestDto.isAdmin()) {
             if (!ADMIN_TOKEN.equals(requestDto.getAdminToken())) {
-                throw new IllegalArgumentException("관리자 암호가 일치하지 않습니다.");
+                throw new UserException(UserErrorCode.USER_INVALID_ADMIN_TOKEN);
             }
             role = UserRoleEnum.ADMIN;
-        }else if(!requestDto.getRole().isEmpty()) {
-            role = UserRoleEnum.OWNER;
         }
 
         // 사용자 등록
@@ -63,6 +61,7 @@ public class UserServiceV1 {
 
         return userRepository.save(user);
     }
+
 
     public User updateUser(Long userId, ReqUserUpdateDtoV1 requestDto) {
         User user = findById(userId);
@@ -85,27 +84,26 @@ public class UserServiceV1 {
         User user = findById(userId);
 
         if(!passwordEncoder.matches(password, user.getPassword())){
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+            throw new UserException(UserErrorCode.USER_INVALID_PASSWORD);
         }
 
         return user;
     }
 
-    public void deleteUser(HttpServletRequest request, HttpServletResponse response, Long userId) {
+    public void deleteUser(HttpServletResponse response, Long userId) {
         User user = findById(userId);
-        
+
         if(!user.isActive()){
-            throw new IllegalStateException("이미 탈퇴한 사용자입니다.");
+            throw new UserException(UserErrorCode.USER_INACTIVE);
         }
 
         user.deactive(user.getUserId());
         jwtUtil.expireRefreshCookie(response);
-        tokenBlacklistMemoryStore.addBlacklist(user.getUserId(), jwtUtil.getExpiredTimeFromHeader(request));
     }
 
     @Transactional(readOnly = true)
     public User findById(Long userId){
         return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
     }
 }
