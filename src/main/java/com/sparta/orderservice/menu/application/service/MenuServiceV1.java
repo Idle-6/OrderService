@@ -22,6 +22,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -143,6 +144,7 @@ public class MenuServiceV1 {
         }
     }
 
+    @Transactional
     public void updateMenu(UUID menuId, ReqMenuUpdateDtoV1 requestDto) {
 
         try {
@@ -153,7 +155,6 @@ public class MenuServiceV1 {
             menuEntity.setDescription(requestDto.getDescription());
             menuEntity.setPrice(requestDto.getPrice());
             menuEntity.setPublic(requestDto.isPublic());
-            menuRepository.save(menuEntity);
 
         } catch (DataAccessException e) {
             throw MenuException.DataAccessExceptionOnUpdateMenu(e);
