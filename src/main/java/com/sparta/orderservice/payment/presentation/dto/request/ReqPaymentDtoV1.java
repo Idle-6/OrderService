@@ -19,7 +19,7 @@ public class ReqPaymentDtoV1 {
     @NotNull(message = "결제 금액은 필수입니다.")
     private Integer amount;
 
-    @NotBlank(message = "결제 수단은 필수입니다.")
+    @NotNull(message = "결제 수단은 필수입니다.")
     private PaymentMethodEnum payType;
 
     private String cardNumber;   // 카드 번호(카드 결제시)
