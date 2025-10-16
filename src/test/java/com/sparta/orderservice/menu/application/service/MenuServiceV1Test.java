@@ -107,6 +107,7 @@ class MenuServiceV1Test {
         User user = User.builder().role(UserRoleEnum.USER).build();
         UserDetailsImpl userDetails = new UserDetailsImpl(user);
         UUID storeId = UUID.randomUUID();
+        String search = "짬뽕";
         int page = 1;
         int size = 10;
         String sortBy = "createdAt";
@@ -124,17 +125,18 @@ class MenuServiceV1Test {
                 new MenuEntity(UUID.randomUUID(), "팔보채", "", 15000, true, storeId)
         );
 
-        when(menuRepository.findAllByStoreIdAndIsPublicTrue(any(UUID.class), any(Pageable.class)))
+        when(menuRepository.findAllByStoreIdAndIsPublicTrueAndNameLike(any(UUID.class), any(String.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(menuList, pageable, menuList.size()));
 
         //when
-        Page<ResMenuGetByStoreIdDtoV1> res = menuServiceV1.getMenuList(userDetails, storeId, page, size, sortBy, isAsc);
+        Page<ResMenuGetByStoreIdDtoV1> res = menuServiceV1.getMenuList(userDetails, storeId, search , page, size, sortBy, isAsc);
 
         //then
-        verify(menuRepository, times(1)).findAllByStoreIdAndIsPublicTrue(any(UUID.class), any(Pageable.class));
-        verify(menuRepository, times(0)).findAllByStoreId(any(UUID.class), any(Pageable.class));
+        verify(menuRepository, times(1))
+                .findAllByStoreIdAndIsPublicTrueAndNameLike(any(UUID.class), any(String.class), any(Pageable.class));
+        verify(menuRepository, times(0))
+                .findAllByStoreIdAndNameLike(any(UUID.class), any(String.class), any(Pageable.class));
         assertNotNull(res);
-        //TODO 정렬 확인
     }
 
     @Test
@@ -144,6 +146,7 @@ class MenuServiceV1Test {
         User user = User.builder().role(UserRoleEnum.ADMIN).build();
         UserDetailsImpl userDetails = new UserDetailsImpl(user);
         UUID storeId = UUID.randomUUID();
+        String search = "짬뽕";
         int page = 1;
         int size = 10;
         String sortBy = "createdAt";
@@ -161,17 +164,16 @@ class MenuServiceV1Test {
                 new MenuEntity(UUID.randomUUID(), "팔보채", "", 15000, true, storeId)
         );
 
-        when(menuRepository.findAllByStoreId(any(UUID.class), any(Pageable.class)))
+        when(menuRepository.findAllByStoreIdAndNameLike(any(UUID.class), any(String.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(menuList, pageable, menuList.size()));
 
         //when
-        Page<ResMenuGetByStoreIdDtoV1> res = menuServiceV1.getMenuList(userDetails, storeId, page, size, sortBy, isAsc);
+        Page<ResMenuGetByStoreIdDtoV1> res = menuServiceV1.getMenuList(userDetails, storeId, search, page, size, sortBy, isAsc);
 
         //then
-        verify(menuRepository, times(0)).findAllByStoreIdAndIsPublicTrue(any(UUID.class), any(Pageable.class));
-        verify(menuRepository, times(1)).findAllByStoreId(any(UUID.class), any(Pageable.class));
+        verify(menuRepository, times(0)).findAllByStoreIdAndIsPublicTrueAndNameLike(any(UUID.class), any(String.class), any(Pageable.class));
+        verify(menuRepository, times(1)).findAllByStoreIdAndNameLike(any(UUID.class), any(String.class), any(Pageable.class));
         assertNotNull(res);
-        //TODO 정렬 확인
     }
 
     @Test

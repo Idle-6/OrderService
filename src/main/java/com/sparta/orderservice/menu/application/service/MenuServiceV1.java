@@ -57,7 +57,7 @@ public class MenuServiceV1 {
                 .build();
     }
 
-    public Page<ResMenuGetByStoreIdDtoV1> getMenuList(@AuthenticationPrincipal UserDetailsImpl userDetails, UUID storeId, int page, int size, String sortBy, boolean isAsc) {
+    public Page<ResMenuGetByStoreIdDtoV1> getMenuList(@AuthenticationPrincipal UserDetailsImpl userDetails, UUID storeId, String search, int page, int size, String sortBy, boolean isAsc) {
 
         Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
         Sort sort = Sort.by(direction, sortBy);
@@ -71,10 +71,10 @@ public class MenuServiceV1 {
             String auth = authority.getAuthority();
 
             if (auth.equals(UserRoleEnum.ADMIN.getAuthority()) || auth.equals(UserRoleEnum.OWNER.getAuthority())) {
-                menuList = menuRepository.findAllByStoreId(storeId, pageable);
+                menuList = menuRepository.findAllByStoreIdAndNameLike(storeId, search, pageable);
                 break;
             } else if (auth.equals(UserRoleEnum.USER.getAuthority())) {
-                menuList = menuRepository.findAllByStoreIdAndIsPublicTrue(storeId, pageable);
+                menuList = menuRepository.findAllByStoreIdAndIsPublicTrueAndNameLike(storeId, search, pageable);
                 break;
             }
         }
