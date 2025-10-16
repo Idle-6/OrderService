@@ -1,5 +1,6 @@
 package com.sparta.orderservice.store.domain.repository;
 
+import com.sparta.orderservice.store.domain.entity.Store;
 import com.sparta.orderservice.store.presentation.dto.SearchParam;
 import com.sparta.orderservice.store.presentation.dto.response.ResStoreDetailDtoV1;
 import com.sparta.orderservice.store.presentation.dto.response.ResStoreDtoV1;
@@ -46,4 +47,15 @@ public interface CustomStoreRepository {
      *         존재하지 않을 경우 {@link Optional#empty()} 반환
      */
     Optional<ResStoreDetailDtoV1> findStoreDetailByUserId(Long userId);
+
+    /**
+     * 특정 사용자 ID를 기반으로 해당 사용자가 등록한 가게가 존재하는지 확인합니다.
+     *
+     * <p>이 메서드는 주어진 {@code userId}를 통해 데이터베이스에서
+     * 해당 사용자가 소유한 {@link Store} 엔티티가 존재하는지 여부를 확인합니다.</p>
+     *
+     * @param userId 확인할 사용자의 고유 식별자
+     * @return 사용자가 등록한 가게가 존재하면 {@code true}, 존재하지 않으면 {@code false}
+     */
+    boolean existsStoreByUserId(Long userId);
 }

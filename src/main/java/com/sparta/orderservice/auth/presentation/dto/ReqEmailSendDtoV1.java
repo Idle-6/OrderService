@@ -1,17 +1,14 @@
 package com.sparta.orderservice.auth.presentation.dto;
 
 import jakarta.validation.constraints.Email;
-import lombok.AllArgsConstructor;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class ReqEmailVarcxificationCheckDtoV1 {
+public class ReqEmailSendDtoV1 {
     @Email
+    @NotEmpty(message = "이메일을 입력해 주세요")
     private String email;
-    private String token;
 }
