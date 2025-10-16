@@ -11,14 +11,13 @@ import java.util.UUID;
 
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
 public class ResPaymentSummaryDtoV1 {
 
     private UUID paymentId;
 
     private Integer amount;
 
-    private String status;
+    private PaymentStatusEnum status;
 
     private LocalDateTime paidAt;
 
@@ -26,7 +25,7 @@ public class ResPaymentSummaryDtoV1 {
     public ResPaymentSummaryDtoV1(UUID paymentId, Integer amount, PaymentStatusEnum status, LocalDateTime paidAt) {
         this.paymentId = paymentId;
         this.amount = amount;
-        this.status = status.getDescription();
+        this.status = status;
         this.paidAt = paidAt;
     }
 }

@@ -1,5 +1,7 @@
 package com.sparta.orderservice.payment.application;
 
+import com.sparta.orderservice.order.domain.entity.Order;
+import com.sparta.orderservice.order.domain.repository.OrderRepository;
 import com.sparta.orderservice.payment.domain.entity.Payment;
 import com.sparta.orderservice.payment.domain.entity.PaymentMethodEnum;
 import com.sparta.orderservice.payment.domain.entity.PaymentStatusEnum;
@@ -11,13 +13,14 @@ import com.sparta.orderservice.payment.presentation.dto.request.ReqPaymentDtoV1;
 import com.sparta.orderservice.payment.presentation.dto.response.ResPaymentDtoV1;
 import com.sparta.orderservice.payment.presentation.dto.response.ResPaymentSummaryDtoV1;
 import com.sparta.orderservice.user.domain.entity.User;
-import com.sparta.orderservice.user.domain.repository.UserRepository;
+import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -26,18 +29,16 @@ import java.util.UUID;
 public class PaymentServiceV1 {
 
     private final PaymentRepository paymentRepository;
-    private final UserRepository userRepository;
-    private final Long USER_ID = null;
+    private final OrderRepository orderRepository;
 
-    public ResPaymentDtoV1 completePayment(ReqPaymentDtoV1 request) {
-
-        User user = userRepository.findById(USER_ID).orElseThrow();
+    public ResPaymentDtoV1 completePayment(ReqPaymentDtoV1 request, User user) {
+        Order order = orderRepository.findById(request.getOrderId()).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다."));
 
         Payment payment = Payment.ofNewPayment(
-                PaymentMethodEnum.fromDisplayName(request.getPayType()),
+                request.getPayType(),
                 request.getAmount(),
                 PaymentStatusEnum.PAID,
-                null,
+                order,
                 user
         );
 
@@ -47,27 +48,43 @@ public class PaymentServiceV1 {
     }
 
     @Transactional(readOnly = true)
-    public Page<ResPaymentSummaryDtoV1> getPaymentPage(Pageable pageable) {
-        return paymentRepository.findPaymentListByUserId(USER_ID, pageable);
+    public Page<ResPaymentSummaryDtoV1> getPaymentPage(Pageable pageable, Long userId) {
+        return paymentRepository.findPaymentListByUserId(userId, pageable);
     }
 
     @Transactional(readOnly = true)
-    public ResPaymentDtoV1 getPayment(UUID paymentId) {
-        return paymentRepository.findPaymentByUserId(paymentId, USER_ID)
+    public ResPaymentDtoV1 getPayment(UUID paymentId, Long userId) {
+        return paymentRepository.findPaymentByUserId(paymentId, userId)
                 .orElseThrow(() -> new PaymentException(
                         PaymentErrorCode.PAYMENT_NOT_FOUND,
-                        PaymentExceptionLogUtils.getNotFoundMessage(paymentId, USER_ID)
+                        PaymentExceptionLogUtils.getNotFoundMessage(paymentId, userId)
                 ));
     }
 
-    public void cancelPayment(UUID paymentId) {
+    public void cancelPayment(UUID paymentId, User user) {
+        Long userId = user.getUserId();
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new PaymentException(
                         PaymentErrorCode.PAYMENT_NOT_FOUND,
-                        PaymentExceptionLogUtils.getNotFoundMessage(paymentId, USER_ID)
+                        PaymentExceptionLogUtils.getNotFoundMessage(paymentId, userId)
                 ));
 
-        payment.cancel(USER_ID);
+        if(!hasPermission(payment, user)) {
+            throw new PaymentException(
+                    PaymentErrorCode.PAYMENT_CANCEL_FORBIDDEN,
+                    PaymentExceptionLogUtils.getCancelMessage(paymentId, userId)
+            );
+        }
+
+        payment.cancel(userId);
+    }
+
+    private boolean hasPermission(Payment payment, User user) {
+        boolean isStoreOwner = Objects.equals(payment.getOrder().getStore().getCreatedBy().getUserId(), user.getUserId());
+        boolean isAdmin = Objects.equals(user.getRole().getAuthority(), UserRoleEnum.ADMIN.getAuthority());
+        boolean isOrderOwner = Objects.equals(payment.getOrder().getUser().getUserId(), user.getUserId());
+
+        return isOrderOwner || isStoreOwner || isAdmin;
     }
 
     private ResPaymentDtoV1 convertResPaymentDto(Payment payment, String userName) {
@@ -75,9 +92,9 @@ public class PaymentServiceV1 {
                 payment.getPaymentId(),
                 payment.getOrder().getOrderId(),
                 payment.getAmount(),
-                payment.getMethod().getDisplayName(),
+                payment.getMethod(),
                 userName,
-                payment.getStatus().getDescription(),
+                payment.getStatus(),
                 payment.getCreatedAt(),
                 payment.getUpdatedAt(),
                 payment.getDeletedAt()

@@ -8,8 +8,8 @@ import org.springframework.http.HttpStatus;
 @Getter
 @AllArgsConstructor
 public enum PaymentErrorCode implements ErrorCodeIfs {
-    PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, 1001, "결제 내역을 찾을 수 없습니다."),
-    PAYMENT_CANCEL_FORBIDDEN(HttpStatus.FORBIDDEN, 1001, "결제 취소 권한이 없습니다.")
+    PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, 4001, "결제 내역을 찾을 수 없습니다."),
+    PAYMENT_CANCEL_FORBIDDEN(HttpStatus.FORBIDDEN, 4002, "결제 취소 권한이 없습니다.")
     ;
 
     private final HttpStatus httpStatus;

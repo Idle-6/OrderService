@@ -1,5 +1,6 @@
 package com.sparta.orderservice.payment.presentation.dto.request;
 
+import com.sparta.orderservice.payment.domain.entity.PaymentMethodEnum;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -19,7 +20,7 @@ public class ReqPaymentDtoV1 {
     private Integer amount;
 
     @NotBlank(message = "결제 수단은 필수입니다.")
-    private String payType;
+    private PaymentMethodEnum payType;
 
     private String cardNumber;   // 카드 번호(카드 결제시)
 
