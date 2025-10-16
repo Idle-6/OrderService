@@ -1,15 +1,17 @@
 package com.sparta.orderservice.global.infrastructure.config;
 
 import com.sparta.orderservice.auth.infrastructure.util.JwtUtil;
-import com.sparta.orderservice.auth.infrastructure.util.TokenBlacklistMemoryStore;
 import com.sparta.orderservice.global.infrastructure.security.JwtAuthenticationFilter;
 import com.sparta.orderservice.global.infrastructure.security.JwtAuthorizationFilter;
 import com.sparta.orderservice.global.infrastructure.security.JwtLogoutHandler;
 import com.sparta.orderservice.global.infrastructure.security.UserDetailsServiceImpl;
+import com.sparta.orderservice.user.domain.repository.UserRepository;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -28,7 +30,7 @@ public class SecurityConfig {
     private final JwtUtil jwtUtil;
     private final AuthenticationConfiguration authenticationConfiguration;
     private final UserDetailsServiceImpl userDetailsService;
-    private final TokenBlacklistMemoryStore tokenBlacklistMemoryStore;
+    private final UserRepository userRepository;
 
     @Bean
     // 비밀번호 암호화 인코더
@@ -51,12 +53,12 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthorizationFilter jwtAuthorizationFilter() {
-        return new JwtAuthorizationFilter(jwtUtil, userDetailsService, tokenBlacklistMemoryStore);
+        return new JwtAuthorizationFilter(jwtUtil, userDetailsService);
     }
 
     @Bean
     public JwtLogoutHandler jwtLogoutHandler() {
-        return new JwtLogoutHandler(jwtUtil, tokenBlacklistMemoryStore);
+        return new JwtLogoutHandler(jwtUtil, userRepository);
     }
 
     @Bean
@@ -75,6 +77,9 @@ public class SecurityConfig {
                         .requestMatchers("/").permitAll() // 메인 페이지 요청 허가
                         .requestMatchers("/v1/auth/**").permitAll() // '/v1/auth/'로 시작하는 요청 모두 접근 허가
                         .requestMatchers("/v1/users/sign-up").permitAll() // 회원가입 요청 접근 허가
+                        .requestMatchers(HttpMethod.POST, "/v1/categorys/**").hasRole(UserRoleEnum.ADMIN.getAuthority())
+                        .requestMatchers(HttpMethod.PATCH, "/v1/categorys/**").hasRole(UserRoleEnum.ADMIN.getAuthority())
+                        .requestMatchers(HttpMethod.DELETE, "/v1/categorys/**").hasRole(UserRoleEnum.ADMIN.getAuthority())
                         .anyRequest().authenticated() // 그 외 모든 요청 인증처리
         );
 
@@ -85,8 +90,11 @@ public class SecurityConfig {
         http.logout(logout -> logout
                 .logoutUrl("/v1/auth/logout")
                 .addLogoutHandler(jwtLogoutHandler())
-                .logoutSuccessHandler((request, response, auth) ->
-                        response.sendRedirect("/"))
+                .logoutSuccessHandler((request, response, auth) ->{
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"message\": \"로그아웃 되었습니다.\"}");
+                })
         );
 
         // 필터 관리

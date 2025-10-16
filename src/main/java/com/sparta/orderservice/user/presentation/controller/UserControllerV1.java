@@ -15,10 +15,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-
-import java.net.URI;
 
 @RestController
 @RequiredArgsConstructor
@@ -63,9 +60,9 @@ public class UserControllerV1 {
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<ResUserDeleteDtoV1> deleteUser(@PathVariable Long userId, HttpServletRequest request, HttpServletResponse response){
+    public ResponseEntity<ResUserDeleteDtoV1> deleteUser(@PathVariable Long userId, HttpServletResponse response){
 
-        userService.deleteUser(request, response, userId);
+        userService.deleteUser(response, userId);
 
         ResUserDeleteDtoV1 body = new ResUserDeleteDtoV1(
                 userId,

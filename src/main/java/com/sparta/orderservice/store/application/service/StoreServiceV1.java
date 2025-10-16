@@ -15,12 +15,15 @@ import com.sparta.orderservice.store.presentation.dto.request.ReqStoreDtoV1;
 import com.sparta.orderservice.store.presentation.dto.request.ReqStoreUpdateDtoV1;
 import com.sparta.orderservice.store.presentation.dto.response.ResStoreDetailDtoV1;
 import com.sparta.orderservice.store.presentation.dto.response.ResStoreDtoV1;
+import com.sparta.orderservice.user.domain.entity.User;
+import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -31,19 +34,21 @@ public class StoreServiceV1 {
     private final StoreRepository storeRepository;
     private final CategoryRepository categoryRepository;
 
-    public ResStoreDetailDtoV1 createStore(ReqStoreDtoV1 request) {
-        // todo: 회원 조회
-
-        // todo: 회원이 가게를 가지고 있는 경우 예외처리
-
+    public ResStoreDetailDtoV1 createStore(ReqStoreDtoV1 request, User user) {
+        Long userId = user.getUserId();
+        if(storeRepository.existsStoreByUserId(userId)) {
+            throw new StoreException(
+                    StoreErrorCode.STORE_ALREADY_OWNED,
+                    StoreExceptionLogUtils.getAlreadyOwnedMessage(userId)
+            );
+        }
 
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new CategoryException(
                         CategoryErrorCode.CATEGORY_NOT_FOUND,
-                        CategoryExceptionLogUtils.getNotFoundMessage(request.getCategoryId(), null)
+                        CategoryExceptionLogUtils.getNotFoundMessage(request.getCategoryId(), userId)
                 ));
 
-        // todo: 수정 필요
         Store store = Store.ofNewStore(request.getName(),
                 request.getBizRegNo(),
                 request.getContact(),
@@ -51,8 +56,10 @@ public class StoreServiceV1 {
                 request.getDescription(),
                 request.isPublic(),
                 category,
-                null
+                user
         );
+
+        storeRepository.save(store);
 
         return convertResStoreDetailDto(store);
     }
@@ -74,13 +81,22 @@ public class StoreServiceV1 {
                 ));
     }
 
-    public ResStoreDetailDtoV1 updateStore(UUID storeId, ReqStoreUpdateDtoV1 request) {
+    public ResStoreDetailDtoV1 updateStore(UUID storeId, ReqStoreUpdateDtoV1 request, User user) {
+        Long userId = user.getUserId();
 
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new StoreException(
                         StoreErrorCode.STORE_NOT_FOUND,
                         StoreExceptionLogUtils.getNotFoundMessage(storeId, null)
                 ));
+
+        if (!hasPermission(user, store, userId)) {
+            throw new StoreException(
+                    StoreErrorCode.STORE_FORBIDDEN,
+                    StoreExceptionLogUtils.getUpdateForbiddenMessage(storeId, userId)
+            );
+        }
+
         Category newCategory = null;
         if (request.getCategoryId() != null) {
             newCategory = categoryRepository.findById(request.getCategoryId())
@@ -90,20 +106,26 @@ public class StoreServiceV1 {
                     ));
         }
 
-        // todo: 수정필요
-        store.update(request, newCategory, null);
+        store.update(request, newCategory, userId);
         return convertResStoreDetailDto(store);
     }
 
-    public void deleteStore(UUID storeId) {
+    public void deleteStore(UUID storeId, User user) {
+        Long userId = user.getUserId();
+
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new StoreException(
                         StoreErrorCode.STORE_NOT_FOUND,
                         StoreExceptionLogUtils.getNotFoundMessage(storeId, null)
                 ));
+        if (!hasPermission(user, store, userId)) {
+            throw new StoreException(
+                    StoreErrorCode.STORE_FORBIDDEN,
+                    StoreExceptionLogUtils.getDeleteForbiddenMessage(storeId, userId)
+            );
+        }
 
-        // todo: 수정필요
-        store.delete(null);
+        store.delete(userId);
     }
 
     private ResStoreDetailDtoV1 convertResStoreDetailDto(Store store) {
@@ -121,5 +143,11 @@ public class StoreServiceV1 {
                 store.getCreatedAt(),
                 store.getUpdatedAt()
         );
+    }
+
+    private boolean hasPermission(User user, Store store, Long userId) {
+        boolean isAdmin = Objects.equals(user.getRole().getAuthority(), UserRoleEnum.ADMIN.getAuthority());
+        boolean isOwner = Objects.equals(store.getCreatedBy().getUserId(), userId);
+        return isAdmin || isOwner;
     }
 }
