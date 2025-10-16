@@ -29,7 +29,7 @@ public class CustomPaymentRepositoryImpl implements CustomPaymentRepository {
     QUser qUser = QUser.user;
 
     @Override
-    public Page<ResPaymentSummaryDtoV1> findPaymentListByUserId(Long userId, Pageable pageable) {
+    public Page<ResPaymentSummaryDtoV1> findPaymentPageByUserId(Long userId, Pageable pageable) {
         List<ResPaymentSummaryDtoV1> resultList = query.select(
                 new QResPaymentSummaryDtoV1(
                     qPayment.paymentId,

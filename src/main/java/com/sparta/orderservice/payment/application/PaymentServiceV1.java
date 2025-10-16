@@ -3,7 +3,6 @@ package com.sparta.orderservice.payment.application;
 import com.sparta.orderservice.order.domain.entity.Order;
 import com.sparta.orderservice.order.domain.repository.OrderRepository;
 import com.sparta.orderservice.payment.domain.entity.Payment;
-import com.sparta.orderservice.payment.domain.entity.PaymentMethodEnum;
 import com.sparta.orderservice.payment.domain.entity.PaymentStatusEnum;
 import com.sparta.orderservice.payment.domain.repository.PaymentRepository;
 import com.sparta.orderservice.payment.presentation.advice.PaymentErrorCode;
@@ -49,7 +48,7 @@ public class PaymentServiceV1 {
 
     @Transactional(readOnly = true)
     public Page<ResPaymentSummaryDtoV1> getPaymentPage(Pageable pageable, Long userId) {
-        return paymentRepository.findPaymentListByUserId(userId, pageable);
+        return paymentRepository.findPaymentPageByUserId(userId, pageable);
     }
 
     @Transactional(readOnly = true)

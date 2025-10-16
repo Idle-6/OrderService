@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public interface CustomPaymentRepository {
 
-    Page<ResPaymentSummaryDtoV1> findPaymentListByUserId(Long userId, Pageable pageable);
+    Page<ResPaymentSummaryDtoV1> findPaymentPageByUserId(Long userId, Pageable pageable);
 
     Optional<ResPaymentDtoV1> findPaymentByUserId(UUID paymentId, Long userId);
 }

@@ -2,7 +2,6 @@ package com.sparta.orderservice.payment.presentation.dto.response;
 
 import com.querydsl.core.annotations.QueryProjection;
 import com.sparta.orderservice.payment.domain.entity.PaymentStatusEnum;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
