@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +37,7 @@ public class StoreControllerV1 {
     public ResponseEntity<Page<ResStoreDtoV1>> getStorePage(
             @RequestParam(required = false) UUID categoryId,
             @RequestParam(required = false) String search,
-            @PageableDefault(size = 10) Pageable pageable
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         SearchParam searchParam = new SearchParam(search, categoryId);
         Page<ResStoreDtoV1> response = storeService.getStorePage(searchParam, pageable);
