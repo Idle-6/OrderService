@@ -123,8 +123,7 @@ public class OrderServiceV1Test {
         menuDto2 = new ReqOrderMenuDtoV1(menuId2, 1);
         orderMenus = List.of(menuDto1, menuDto2);
         paymentId = UUID.randomUUID();
-        payment = Payment.builder().paymentId(paymentId).method(PaymentMethodEnum.CARD).amount(16000).status(PaymentStatusEnum.PAID).order(order).user(user).build();
-
+        payment = Payment.ofNewPayment(PaymentMethodEnum.CARD, 16000, PaymentStatusEnum.PAID, null, order, user);
     }
 
     @Test
@@ -141,7 +140,6 @@ public class OrderServiceV1Test {
                 LocalDateTime.now(),
                 null
         );
-
 
         when(menuRepository.findById(menuId1)).thenReturn(Optional.of(menu1));
         when(menuRepository.findById(menuId2)).thenReturn(Optional.of(menu2));

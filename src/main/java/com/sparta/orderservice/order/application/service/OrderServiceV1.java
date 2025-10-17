@@ -95,15 +95,15 @@ public class OrderServiceV1 {
 
         orderRepository.save(order);
 
-        // 결제
+        // 결제 토큰 생성
+        String pgToken = UUID.randomUUID().toString().replace("-", "");
+
+        // 결제 요청
         ReqPaymentDtoV1 paymentRequest = new ReqPaymentDtoV1(
                 order.getOrderId(),
                 order.getTotalPrice(),
                 PaymentMethodEnum.CARD,
-                null,
-                null,
-                null,
-                null
+                pgToken
         );
 
         paymentService.completePayment(paymentRequest, user);
@@ -172,7 +172,7 @@ public class OrderServiceV1 {
             );
         }
 
-        order.updateOrderStatus(orderStatus, null);
+        order.updateOrderStatus(orderStatus, userId);
         orderRepository.save(order);
 
         return new ResOrderUpdateDtoV1(
@@ -214,7 +214,7 @@ public class OrderServiceV1 {
             );
         }
 
-        order.cancelOrder(null);
+        order.cancelOrder(userId);
         orderRepository.save(order);
 
         // 결제 취소
