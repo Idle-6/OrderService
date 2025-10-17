@@ -109,8 +109,7 @@ public class CustomStoreRepositoryImpl implements CustomStoreRepository {
 
         Long exist = query.select(qStore.count())
                 .from(qStore)
-                .join(qUser).on(qStore.createdBy.eq(qUser))
-                .where(qUser.userId.eq(userId))
+                .where(qStore.createdBy.userId.eq(userId))
                 .fetchOne();
         return exist != null && exist  > 0;
     }
