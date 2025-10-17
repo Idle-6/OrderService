@@ -1,6 +1,7 @@
 package com.sparta.orderservice.store.domain.repository;
 
 import com.sparta.orderservice.category.domain.entity.Category;
+import com.sparta.orderservice.global.infrastructure.querydsl.QuerydslConfig;
 import com.sparta.orderservice.store.domain.entity.Store;
 import com.sparta.orderservice.store.presentation.dto.SearchParam;
 import com.sparta.orderservice.store.presentation.dto.request.ReqStoreUpdateDtoV1;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
@@ -25,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ActiveProfiles("test")
 @DataJpaTest
+@Import(QuerydslConfig.class)
 class StoreRepositoryTest {
 
     @Autowired
@@ -94,10 +97,10 @@ class StoreRepositoryTest {
     }
 
     @Test
-    @DisplayName("가게 리스트 조회 - 전체")
+    @DisplayName("가게 리스트 조회 - 사용자")
     void findStorePage() {
         SearchParam searchParam = new SearchParam();
-        Page<ResStoreDtoV1> response = storeRepository.findStorePage(searchParam, Pageable.ofSize(5));
+        Page<ResStoreDtoV1> response = storeRepository.findStorePage(searchParam, Pageable.ofSize(5), false);
 
         assertFalse(response.isEmpty());
 
@@ -112,10 +115,28 @@ class StoreRepositoryTest {
     }
 
     @Test
+    @DisplayName("가게 리스트 조회 - 관리자")
+    void findStorePage_manager() {
+        SearchParam searchParam = new SearchParam();
+        Page<ResStoreDtoV1> response = storeRepository.findStorePage(searchParam, Pageable.ofSize(5), true);
+
+        assertFalse(response.isEmpty());
+
+        assertAll(() -> {
+            assertEquals(5, response.getTotalElements());
+            assertEquals("모던 한식", response.getContent().get(0).getDescription());
+            assertEquals("전통 한식", response.getContent().get(1).getDescription());
+            assertEquals("중식", response.getContent().get(2).getDescription());
+            assertEquals("시원한 한식", response.getContent().get(3).getDescription());
+            assertEquals("맛있는 한식", response.getContent().get(4).getDescription());
+        });
+    }
+
+    @Test
     @DisplayName("가게 리스트 조회 - 카테고리별")
     void findStorePage_categoryId() {
         SearchParam searchParam = new SearchParam(null, category2.getCategoryId());
-        Page<ResStoreDtoV1> response = storeRepository.findStorePage(searchParam, Pageable.ofSize(5));
+        Page<ResStoreDtoV1> response = storeRepository.findStorePage(searchParam, Pageable.ofSize(5), false);
 
         assertFalse(response.isEmpty());
 
@@ -129,7 +150,7 @@ class StoreRepositoryTest {
     @DisplayName("가게 리스트 조회 - 검색")
     void findStorePage_search() {
         SearchParam searchParam = new SearchParam("한식", null);
-        Page<ResStoreDtoV1> response = storeRepository.findStorePage(searchParam, Pageable.ofSize(5));
+        Page<ResStoreDtoV1> response = storeRepository.findStorePage(searchParam, Pageable.ofSize(5), false);
 
         assertFalse(response.isEmpty());
 

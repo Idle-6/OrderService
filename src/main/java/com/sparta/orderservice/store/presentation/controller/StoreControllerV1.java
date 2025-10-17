@@ -7,11 +7,11 @@ import com.sparta.orderservice.store.presentation.dto.request.ReqStoreDtoV1;
 import com.sparta.orderservice.store.presentation.dto.request.ReqStoreUpdateDtoV1;
 import com.sparta.orderservice.store.presentation.dto.response.ResStoreDetailDtoV1;
 import com.sparta.orderservice.store.presentation.dto.response.ResStoreDtoV1;
-import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,8 +27,6 @@ public class StoreControllerV1 {
 
     private final StoreServiceV1 storeService;
 
-
-
     @PostMapping
     public ResponseEntity<ResStoreDetailDtoV1> createStore(@RequestBody @Valid ReqStoreDtoV1 request, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         ResStoreDetailDtoV1 response = storeService.createStore(request, userDetails.getUser());
@@ -39,7 +37,7 @@ public class StoreControllerV1 {
     public ResponseEntity<Page<ResStoreDtoV1>> getStorePage(
             @RequestParam(required = false) UUID categoryId,
             @RequestParam(required = false) String search,
-            @PageableDefault(size = 10) Pageable pageable
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         SearchParam searchParam = new SearchParam(search, categoryId);
         Page<ResStoreDtoV1> response = storeService.getStorePage(searchParam, pageable);
@@ -49,6 +47,12 @@ public class StoreControllerV1 {
     @GetMapping("/{storeId}")
     public ResponseEntity<ResStoreDetailDtoV1> getStore(@PathVariable UUID storeId) {
         ResStoreDetailDtoV1 response = storeService.getStore(storeId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/owner")
+    public ResponseEntity<ResStoreDetailDtoV1> getStoreForOwner(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        ResStoreDetailDtoV1 response = storeService.getStoreForOwner(userDetails.getUser().getUserId());
         return ResponseEntity.ok(response);
     }
 

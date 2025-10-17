@@ -101,6 +101,10 @@ public class Store {
         this.updatedBy = updatedBy;
     }
 
+    public void updateReviewCount(Long reviewCount, BigDecimal averageRating) {
+        this.reviewCount = reviewCount;
+        this.averageRating = averageRating;
+    }
 
     public void delete(Long deletedBy) {
         this.deletedAt = LocalDateTime.now();

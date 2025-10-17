@@ -7,6 +7,10 @@ public class PaymentExceptionLogUtils {
         return "결제 내역 없음: paymentId=%s, 요청 사용자 ID=%s".formatted(paymentId, userId);
     }
 
+    public static String getUpdateStatusMessage(UUID paymentId, Long userId) {
+        return "결제 상태 수정 권한 없음: paymentId=%s, 사용자 ID=%s".formatted(paymentId, userId);
+    }
+
     public static String getCancelMessage(UUID paymentId, Long userId) {
         return "결제 취소 권한 없음: paymentId=%s, 사용자 ID=%s".formatted(paymentId, userId);
     }

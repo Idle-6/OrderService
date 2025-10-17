@@ -46,7 +46,6 @@ public class GeminiClient {
                 throw MenuException.AiApiNullResponseException();
             }
 
-            //TODO AI 로그 저장
             aiRepository.save(
                     AiLogEntity.builder()
                             .request(prompt)

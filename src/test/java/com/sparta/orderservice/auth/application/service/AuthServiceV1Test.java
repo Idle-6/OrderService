@@ -8,7 +8,6 @@ import com.sparta.orderservice.global.infrastructure.security.UserDetailsService
 import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletResponse;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,12 +15,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -43,14 +40,14 @@ class AuthServiceV1Test {
     String refreshToken = "refreshToken";
     String email = "user@test.com";
     long userId = 1L;
-
-    void setup(Long time) {
+    void setup(Long exp) {
         // validationToken 통과
-        doNothing().when(jwtUtil).validateToken(refreshToken, false);
+        when(jwtUtil.validateToken(refreshToken, false)).thenReturn(true);
 
         Claims claims = mock(Claims.class);
+        long now = System.currentTimeMillis();
         when(jwtUtil.getUserInfoFromToken(refreshToken)).thenReturn(claims);
-        when(claims.getExpiration().getTime()).thenReturn(System.currentTimeMillis() + time); // + 1일
+        when(claims.getExpiration()).thenReturn(new Date(now + exp)); // + 1일
         when(claims.get(eq(JwtUtil.USER_ID), eq(Long.class))).thenReturn(userId);
         when(claims.getSubject()).thenReturn(email);
 
@@ -65,6 +62,8 @@ class AuthServiceV1Test {
     @DisplayName("AT 재발급 + RT 회전(만료시간 임박)")
     void reissue() {
         // given
+        ReflectionTestUtils.setField(authServiceV1, "RT_ROTATE_TIME", 259200000L);
+
         setup(1000L * 60 * 60 * 24); // + 1일
 
         // AT/RT 생성 + 헤더/쿠키 세팅 (JwtUtil 은 mock이므로 호출만 검증)
