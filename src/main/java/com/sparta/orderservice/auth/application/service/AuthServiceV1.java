@@ -141,9 +141,9 @@ public class AuthServiceV1 {
             mailSender.send(message);
         } catch (MessagingException e) {
             log.error(e.getMessage());
-            throw new RuntimeException("이메일 전송에 실패했습니다.");
+            throw new AuthException(AuthErrorCode.AUTH_EMAIL_SEND_FAILED);
         } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
+            throw new AuthException(AuthErrorCode.AUTH_EMAIL_ENCODING_FAILED);
         }
     }
 
@@ -155,26 +155,26 @@ public class AuthServiceV1 {
             byte[] hash = digest.digest(String.valueOf(number).getBytes(StandardCharsets.UTF_8));
             return Base64.getEncoder().encodeToString(hash);
         } catch (Exception e) {
-            throw new RuntimeException("인증번호 해싱 실패", e);
+            throw new AuthException(AuthErrorCode.AUTH_HASH_FAILED);
         }
     }
 
     @Transactional
     public Auth verifyEmail(String email, int token) {
-        Auth auth = authRepository.findTopByTokenHashAndConsumedAtIsNull(email)
-                .orElseThrow(() -> new IllegalArgumentException("인증 요청이 존재하지 않습니다."));
+        Auth auth = authRepository.findTopByEmailAndConsumedAtIsNull(email)
+                .orElseThrow(() -> new AuthException(AuthErrorCode.AUTH_NO_VERIFICATION));
 
         if(auth.isExpired()) {
-            throw new IllegalArgumentException("인증번호가 만료되었습니다.");
+            throw new AuthException(AuthErrorCode.AUTH_EXPIRED_VERIFICATION);
         }
 
         if(auth.isConsumed()) {
-            throw new IllegalArgumentException("이미 사용된 인증번호입니다.");
+            throw new AuthException(AuthErrorCode.AUTH_USED_VERIFICATION);
         }
 
         String inputHash = hashAuthNumber(token);
         if(!inputHash.equals(auth.getTokenHash())) {
-            throw new IllegalArgumentException("인증번호가 일치하지 않습니다.");
+            throw new AuthException(AuthErrorCode.AUTH_VERIFICATION_MISMATCH);
         }
 
         auth.updateConsumedAt(LocalDateTime.now());

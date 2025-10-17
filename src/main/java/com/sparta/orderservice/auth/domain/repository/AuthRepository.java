@@ -14,7 +14,7 @@ import java.util.UUID;
 
 
 public interface AuthRepository extends JpaRepository<Auth, UUID> {
-    Optional<Auth> findTopByTokenHashAndConsumedAtIsNull(String tokenHash);
+    Optional<Auth> findTopByEmailAndConsumedAtIsNull(String email);
 
     void deleteByEmail(String email);
 
