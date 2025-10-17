@@ -9,6 +9,7 @@ import com.sparta.orderservice.auth.presentation.dto.ResReissueDtoV1;
 import com.sparta.orderservice.global.infrastructure.security.UserDetailsServiceImpl;
 import com.sparta.orderservice.global.presentation.advice.handler.GlobalExceptionHandler;
 import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
+import com.sparta.orderservice.user.domain.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
@@ -44,6 +45,7 @@ public class AuthServiceV1 {
 
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
+    private final UserRepository userRepository;
 
     private final JavaMailSender mailSender;
     private final AuthRepository authRepository;
@@ -81,6 +83,9 @@ public class AuthServiceV1 {
             String newRT = jwtUtil.createRefreshToken(email, userId);
             jwtUtil.addRefreshTokenToCookie(response, newRT);
         }
+
+        // 기존 토큰 무효화
+        userRepository.updateTokenExpiredAtById(info.get(JwtUtil.USER_ID, Long.class), System.currentTimeMillis());
 
         ResReissueDtoV1 dto = new ResReissueDtoV1();
         dto.setRefreshRotated(rotateRT);
