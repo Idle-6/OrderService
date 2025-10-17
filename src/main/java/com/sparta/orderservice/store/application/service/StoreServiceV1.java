@@ -156,7 +156,7 @@ public class StoreServiceV1 {
     }
 
     private boolean hasPermission(User user, Store store) {
-        boolean isAdmin = Objects.equals(user.getRole().getAuthority(), UserRoleEnum.ADMIN.getAuthority());
+        boolean isAdmin = Objects.equals(user.getRole(), UserRoleEnum.ADMIN);
         boolean isOwner = Objects.equals(store.getCreatedBy().getUserId(), user.getUserId());
 
         return isAdmin || isOwner;
