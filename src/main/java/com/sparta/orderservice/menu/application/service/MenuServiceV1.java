@@ -86,6 +86,14 @@ public class MenuServiceV1 {
             throw MenuException.AccessDeniedOnGetMenuList();
         }
 
+        if(page < 0) {
+            page = 0;
+        }
+
+        if(size != 10 && size != 30 && size != 50) {
+            size = 10;
+        }
+
         search = "%" + search + "%";
 
         Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
