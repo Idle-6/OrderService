@@ -9,8 +9,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum CategoryErrorCode implements ErrorCodeIfs {
 
-    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, 1001, "카테고리를 찾을 수 없습니다."),
-    CATEGORY_CONFLICT(HttpStatus.CONFLICT, 1001, "이미 존재하는 카테고리 입니다.");
+    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, 7001, "카테고리를 찾을 수 없습니다."),
+    CATEGORY_CONFLICT(HttpStatus.CONFLICT, 7002, "이미 존재하는 카테고리 입니다.");
 
     private final HttpStatus httpStatus;
     private final Integer errorCode;

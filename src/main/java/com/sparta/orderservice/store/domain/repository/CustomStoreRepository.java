@@ -20,14 +20,15 @@ import java.util.UUID;
 public interface CustomStoreRepository {
 
     /**
-     * 검색 조건과 페이지 정보를 기반으로
-     * 가게 목록을 동적으로 조회합니다.
+     * 검색 조건과 페이지 정보를 기반으로 가게 목록을 동적으로 조회합니다.
+     * 관리자인 경우 모든 가게를, 일반 사용자는 자신의 가게만 조회할 수 있습니다.
      *
-     * @param searchParam 검색 조건을 담은 객체 (카테고리, 이름, 주소 등 포함)
+     * @param searchParam 검색 조건 객체 (카테고리, 이름, 주소 등 포함)
      * @param pageable 페이지네이션 정보 (페이지 번호, 크기, 정렬 기준)
+     * @param isAdmin 관리자 여부 (true일 경우 전체 가게 조회 가능)
      * @return {@link Page} 형태의 가게 목록 결과
      */
-    Page<ResStoreDtoV1> findStorePage(SearchParam searchParam, Pageable pageable);
+    Page<ResStoreDtoV1> findStorePage(SearchParam searchParam, Pageable pageable, boolean isAdmin);
 
     /**
      * 가게의 고유 ID(UUID)를 기준으로 상세 정보를 조회합니다.
@@ -41,6 +42,7 @@ public interface CustomStoreRepository {
     /**
      * 사용자 ID를 기준으로
      * 해당 사용자가 등록한 가게의 상세 정보를 조회합니다.
+     * 가게 주인 용
      *
      * @param userId 사용자 고유 식별자(Long)
      * @return 사용자가 등록한 가게의 상세 정보 DTO,

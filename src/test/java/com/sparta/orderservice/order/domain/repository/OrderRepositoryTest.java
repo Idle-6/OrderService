@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 @ActiveProfiles("test")
+@Import(QuerydslConfig.class)
 @DisplayName("주문 레포지토리 테스트")
 @Import(QuerydslConfig.class)
 public class OrderRepositoryTest {

@@ -103,16 +103,16 @@ class StoreServiceV1Test {
     void getStorePage() {
         SearchParam searchParam = new SearchParam();
         ResStoreDtoV1 response = new ResStoreDtoV1(UUID.randomUUID(), "한식", "가게이름1", "010-1111-1111", "서울 강남구 역삼동", "맛있는 한식", 999L, BigDecimal.valueOf(4.5));
-        when(storeRepository.findStorePage(Mockito.any(SearchParam.class), Mockito.any())).thenReturn(new PageImpl<>(List.of(response)));
+        when(storeRepository.findStorePage(Mockito.any(SearchParam.class), Mockito.any(), Mockito.anyBoolean())).thenReturn(new PageImpl<>(List.of(response)));
 
         storeService.getStorePage(searchParam, Pageable.ofSize(5));
 
-        verify(storeRepository, Mockito.times(1)).findStorePage(Mockito.any(SearchParam.class), Mockito.any());
+        verify(storeRepository, Mockito.times(1)).findStorePage(Mockito.any(SearchParam.class), Mockito.any(), Mockito.anyBoolean());
 
     }
 
     @Test
-    @DisplayName("가게 조회")
+    @DisplayName("가게 조회 - 사용자")
     void getStore() {
         UUID storeId = UUID.randomUUID();
         ResStoreDetailDtoV1 response = new ResStoreDetailDtoV1(storeId, "한식", "가게이름1", "123-45-67890", "010-1111-1111", "서울 강남구 역삼동", "맛있는 한식", true, 10L, BigDecimal.valueOf(4.8), LocalDateTime.now(), LocalDateTime.now());
@@ -121,6 +121,28 @@ class StoreServiceV1Test {
         storeService.getStore(storeId);
 
         verify(storeRepository, Mockito.times(1)).findStoreDetailById(Mockito.any());
+    }
+
+    @Test
+    @DisplayName("가게 조회 - 주인")
+    void getStoreForOwner() {
+        UUID storeId = UUID.randomUUID();
+        ResStoreDetailDtoV1 response = new ResStoreDetailDtoV1(storeId, "한식", "가게이름1", "123-45-67890", "010-1111-1111", "서울 강남구 역삼동", "맛있는 한식", true, 10L, BigDecimal.valueOf(4.8), LocalDateTime.now(), LocalDateTime.now());
+        when(storeRepository.findStoreDetailByUserId(Mockito.anyLong())).thenReturn(Optional.of(response));
+
+        storeService.getStoreForOwner(user.getUserId());
+
+        verify(storeRepository, Mockito.times(1)).findStoreDetailByUserId(Mockito.anyLong());
+    }
+
+    @Test
+    @DisplayName("가게 조회 - 주인 - 존재하지 않음")
+    void getStoreForOwner_not_found() {
+        when(storeRepository.findStoreDetailByUserId(Mockito.anyLong())).thenReturn(Optional.empty());
+
+        assertThrows(StoreException.class, () -> storeService.getStoreForOwner(user.getUserId()));
+
+        verify(storeRepository, Mockito.times(1)).findStoreDetailByUserId(Mockito.anyLong());
     }
 
     @Test
