@@ -103,11 +103,11 @@ class StoreServiceV1Test {
     void getStorePage() {
         SearchParam searchParam = new SearchParam();
         ResStoreDtoV1 response = new ResStoreDtoV1(UUID.randomUUID(), "한식", "가게이름1", "010-1111-1111", "서울 강남구 역삼동", "맛있는 한식", 999L, BigDecimal.valueOf(4.5));
-        when(storeRepository.findStorePage(Mockito.any(SearchParam.class), Mockito.any())).thenReturn(new PageImpl<>(List.of(response)));
+        when(storeRepository.findStorePage(Mockito.any(SearchParam.class), Mockito.any(), false)).thenReturn(new PageImpl<>(List.of(response)));
 
         storeService.getStorePage(searchParam, Pageable.ofSize(5));
 
-        verify(storeRepository, Mockito.times(1)).findStorePage(Mockito.any(SearchParam.class), Mockito.any());
+        verify(storeRepository, Mockito.times(1)).findStorePage(Mockito.any(SearchParam.class), Mockito.any(), false);
 
     }
 

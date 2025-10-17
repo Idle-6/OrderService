@@ -64,11 +64,11 @@ public class StoreServiceV1 {
         return convertResStoreDetailDto(store);
     }
 
-    // 전체 조회
+    // 전체 조회 - 고객
     @Transactional(readOnly = true)
     public Page<ResStoreDtoV1> getStorePage(SearchParam search, Pageable pageable) {
 
-        return storeRepository.findStorePage(search, pageable);
+        return storeRepository.findStorePage(search, pageable, false);
     }
 
     @Transactional(readOnly = true)

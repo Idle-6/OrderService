@@ -97,7 +97,7 @@ class StoreRepositoryTest {
     @DisplayName("가게 리스트 조회 - 전체")
     void findStorePage() {
         SearchParam searchParam = new SearchParam();
-        Page<ResStoreDtoV1> response = storeRepository.findStorePage(searchParam, Pageable.ofSize(5));
+        Page<ResStoreDtoV1> response = storeRepository.findStorePage(searchParam, Pageable.ofSize(5), false);
 
         assertFalse(response.isEmpty());
 
@@ -115,7 +115,7 @@ class StoreRepositoryTest {
     @DisplayName("가게 리스트 조회 - 카테고리별")
     void findStorePage_categoryId() {
         SearchParam searchParam = new SearchParam(null, category2.getCategoryId());
-        Page<ResStoreDtoV1> response = storeRepository.findStorePage(searchParam, Pageable.ofSize(5));
+        Page<ResStoreDtoV1> response = storeRepository.findStorePage(searchParam, Pageable.ofSize(5), false);
 
         assertFalse(response.isEmpty());
 
@@ -129,7 +129,7 @@ class StoreRepositoryTest {
     @DisplayName("가게 리스트 조회 - 검색")
     void findStorePage_search() {
         SearchParam searchParam = new SearchParam("한식", null);
-        Page<ResStoreDtoV1> response = storeRepository.findStorePage(searchParam, Pageable.ofSize(5));
+        Page<ResStoreDtoV1> response = storeRepository.findStorePage(searchParam, Pageable.ofSize(5), false);
 
         assertFalse(response.isEmpty());
 

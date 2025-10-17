@@ -41,16 +41,13 @@ public class CustomStoreRepositoryImpl extends QuerydslRepositorySupport impleme
     QUser qUser = QUser.user;
 
     @Override
-    public Page<ResStoreDtoV1> findStorePage(SearchParam searchParam, Pageable pageable) {
+    public Page<ResStoreDtoV1> findStorePage(SearchParam searchParam, Pageable pageable, boolean isAdmin) {
         JPAQuery<Store> query = new JPAQuery<>(getEntityManager());
 
         JPAQuery<ResStoreDtoV1> jpaQuery = query.select(getStoreProjection())
                 .from(qStore)
                 .join(qCategory).on(qStore.category.categoryId.eq(qCategory.categoryId))
-                .where(whereExpression(searchParam),
-                        qStore.isPublic.isTrue(),
-                        qStore.deletedAt.isNull()
-                )
+                .where(whereExpression(searchParam), permissionCondition(isAdmin))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize());
 
@@ -129,6 +126,17 @@ public class CustomStoreRepositoryImpl extends QuerydslRepositorySupport impleme
 
         if(searchParam.getCategoryId() != null) {
             booleanBuilder.and(qStore.category.categoryId.eq(searchParam.getCategoryId()));
+        }
+
+        return booleanBuilder;
+    }
+
+    private BooleanBuilder permissionCondition(boolean isAdmin) {
+        BooleanBuilder booleanBuilder = new BooleanBuilder();
+
+        if(!isAdmin) {
+            booleanBuilder.and(qStore.isPublic.isTrue())
+                    .and(qStore.deletedAt.isNull());
         }
 
         return booleanBuilder;

@@ -27,7 +27,7 @@ public interface CustomStoreRepository {
      * @param pageable 페이지네이션 정보 (페이지 번호, 크기, 정렬 기준)
      * @return {@link Page} 형태의 가게 목록 결과
      */
-    Page<ResStoreDtoV1> findStorePage(SearchParam searchParam, Pageable pageable);
+    Page<ResStoreDtoV1> findStorePage(SearchParam searchParam, Pageable pageable, boolean isAdmin);
 
     /**
      * 가게의 고유 ID(UUID)를 기준으로 상세 정보를 조회합니다.
