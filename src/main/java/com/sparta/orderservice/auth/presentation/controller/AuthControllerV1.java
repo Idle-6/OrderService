@@ -1,6 +1,7 @@
 package com.sparta.orderservice.auth.presentation.controller;
 
 import com.sparta.orderservice.auth.application.service.AuthServiceV1;
+import com.sparta.orderservice.auth.domain.entity.Auth;
 import com.sparta.orderservice.auth.infrastructure.util.JwtUtil;
 import com.sparta.orderservice.auth.presentation.dto.ReqEmailCheckDtoV1;
 import com.sparta.orderservice.auth.presentation.dto.ResEmailCheckDtoV1;
@@ -46,10 +47,12 @@ public class AuthControllerV1 {
 
     @PostMapping("/email/varification")
     public ResponseEntity<ResEmailCheckDtoV1> verifyEmail(@RequestBody @Valid ReqEmailCheckDtoV1 req){
+        Auth auth = authService.verifyEmail(req.getEmail(), req.getToken());
+
         ResEmailCheckDtoV1 body = new ResEmailCheckDtoV1(
                 true
                 , "이메일 인증이 완료되었습니다."
-                , req.getEmail()
+                , auth.getEmail()
         );
 
         return ResponseEntity.ok(body);

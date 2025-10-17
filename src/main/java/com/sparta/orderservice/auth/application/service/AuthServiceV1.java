@@ -1,5 +1,7 @@
 package com.sparta.orderservice.auth.application.service;
 
+import com.sparta.orderservice.auth.domain.entity.Auth;
+import com.sparta.orderservice.auth.domain.repository.AuthRepository;
 import com.sparta.orderservice.auth.infrastructure.util.JwtUtil;
 import com.sparta.orderservice.auth.presentation.advice.AuthErrorCode;
 import com.sparta.orderservice.auth.presentation.advice.AuthException;
@@ -12,17 +14,26 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cglib.core.Local;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Random;
 
@@ -35,6 +46,7 @@ public class AuthServiceV1 {
     private final UserDetailsServiceImpl userDetailsService;
 
     private final JavaMailSender mailSender;
+    private final AuthRepository authRepository;
     private int authNumber;
 
     // RT 남은 수명이 이 값보다 짧으면 회전
@@ -77,12 +89,28 @@ public class AuthServiceV1 {
     }
 
     public void makeRandomNumber() {
-        Random r = new Random();
+        SecureRandom r = new SecureRandom();
         authNumber = r.nextInt(900000)+100000;
     }
 
+    @Transactional
     public void mailSender(String email) {
         makeRandomNumber();
+
+        String tokenHash = hashAuthNumber(authNumber);
+
+        // 기존 이메일 인증 내역 삭제
+        authRepository.deleteByEmail(email);
+
+        Auth auth = Auth.builder()
+                .email(email)
+                .tokenHash(tokenHash)
+                .createdAt(LocalDateTime.now())
+                .expiresAt(LocalDateTime.now().plusMinutes(15))
+                .build();
+        authRepository.save(auth);
+
+
         String setForm = "noreply@orderservice.com";
         String toMail = email;
         String title = "[OrderService] 회원가입 인증 이메일입니다.";
@@ -117,5 +145,39 @@ public class AuthServiceV1 {
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    // SHA-256으로 인증번호 해싱 (DB 저장용)
+    private String hashAuthNumber(int number) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(String.valueOf(number).getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(hash);
+        } catch (Exception e) {
+            throw new RuntimeException("인증번호 해싱 실패", e);
+        }
+    }
+
+    @Transactional
+    public Auth verifyEmail(String email, int token) {
+        Auth auth = authRepository.findTopByTokenHashAndConsumedAtIsNull(email)
+                .orElseThrow(() -> new IllegalArgumentException("인증 요청이 존재하지 않습니다."));
+
+        if(auth.isExpired()) {
+            throw new IllegalArgumentException("인증번호가 만료되었습니다.");
+        }
+
+        if(auth.isConsumed()) {
+            throw new IllegalArgumentException("이미 사용된 인증번호입니다.");
+        }
+
+        String inputHash = hashAuthNumber(token);
+        if(!inputHash.equals(auth.getTokenHash())) {
+            throw new IllegalArgumentException("인증번호가 일치하지 않습니다.");
+        }
+
+        auth.updateConsumedAt(LocalDateTime.now());
+        return authRepository.save(auth);
     }
 }
