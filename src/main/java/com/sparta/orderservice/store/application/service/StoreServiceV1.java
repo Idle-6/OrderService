@@ -68,7 +68,7 @@ public class StoreServiceV1 {
     @Transactional(readOnly = true)
     public Page<ResStoreDtoV1> getStorePage(SearchParam search, Pageable pageable) {
 
-        return storeRepository.findStorePage(search, pageable);
+        return storeRepository.findStorePage(search, pageable, false);
     }
 
     @Transactional(readOnly = true)
@@ -77,7 +77,17 @@ public class StoreServiceV1 {
         return storeRepository.findStoreDetailById(storeId)
                 .orElseThrow(() -> new StoreException(
                         StoreErrorCode.STORE_NOT_FOUND,
-                        StoreExceptionLogUtils.getNotFoundMessage(storeId, null)
+                        StoreExceptionLogUtils.getNotFoundMessage(storeId)
+                ));
+    }
+
+    @Transactional(readOnly = true)
+    public ResStoreDetailDtoV1 getStoreForOwner(Long userId) {
+
+        return storeRepository.findStoreDetailByUserId(userId)
+                .orElseThrow(() -> new StoreException(
+                        StoreErrorCode.STORE_NOT_FOUND,
+                        StoreExceptionLogUtils.getNoOwnedStoreErrorMessage(userId)
                 ));
     }
 
@@ -87,10 +97,10 @@ public class StoreServiceV1 {
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new StoreException(
                         StoreErrorCode.STORE_NOT_FOUND,
-                        StoreExceptionLogUtils.getNotFoundMessage(storeId, null)
+                        StoreExceptionLogUtils.getNotFoundMessage(storeId, userId)
                 ));
 
-        if (!hasPermission(user, store, userId)) {
+        if (!hasPermission(user, store)) {
             throw new StoreException(
                     StoreErrorCode.STORE_FORBIDDEN,
                     StoreExceptionLogUtils.getUpdateForbiddenMessage(storeId, userId)
@@ -102,7 +112,7 @@ public class StoreServiceV1 {
             newCategory = categoryRepository.findById(request.getCategoryId())
                     .orElseThrow(() -> new CategoryException(
                             CategoryErrorCode.CATEGORY_NOT_FOUND,
-                            CategoryExceptionLogUtils.getNotFoundMessage(request.getCategoryId(), null)
+                            CategoryExceptionLogUtils.getNotFoundMessage(request.getCategoryId(), userId)
                     ));
         }
 
@@ -116,9 +126,9 @@ public class StoreServiceV1 {
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new StoreException(
                         StoreErrorCode.STORE_NOT_FOUND,
-                        StoreExceptionLogUtils.getNotFoundMessage(storeId, null)
+                        StoreExceptionLogUtils.getNotFoundMessage(storeId, userId)
                 ));
-        if (!hasPermission(user, store, userId)) {
+        if (!hasPermission(user, store)) {
             throw new StoreException(
                     StoreErrorCode.STORE_FORBIDDEN,
                     StoreExceptionLogUtils.getDeleteForbiddenMessage(storeId, userId)
@@ -145,9 +155,10 @@ public class StoreServiceV1 {
         );
     }
 
-    private boolean hasPermission(User user, Store store, Long userId) {
-        boolean isAdmin = Objects.equals(user.getRole().getAuthority(), UserRoleEnum.ADMIN.getAuthority());
-        boolean isOwner = Objects.equals(store.getCreatedBy().getUserId(), userId);
+    private boolean hasPermission(User user, Store store) {
+        boolean isAdmin = Objects.equals(user.getRole(), UserRoleEnum.ADMIN);
+        boolean isOwner = Objects.equals(store.getCreatedBy().getUserId(), user.getUserId());
+
         return isAdmin || isOwner;
     }
 }

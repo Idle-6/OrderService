@@ -18,14 +18,12 @@ import com.sparta.orderservice.store.presentation.dto.response.ResStoreDtoV1;
 import com.sparta.orderservice.user.domain.entity.QUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.support.PageableExecutionUtils;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @RequiredArgsConstructor
 public class CustomStoreRepositoryImpl implements CustomStoreRepository {
@@ -43,18 +41,23 @@ public class CustomStoreRepositoryImpl implements CustomStoreRepository {
     @Override
     public Page<ResStoreDtoV1> findStorePage(SearchParam searchParam, Pageable pageable) {
 
+        int pageSize = pageable.getPageSize();
+        List<Integer> allowedPageSizes = Arrays.asList(10, 30, 50);
+        if (!allowedPageSizes.contains(pageSize)) {
+            pageSize = 10;
+        }
+
+        Pageable adjustedPageable = PageRequest.of(pageable.getPageNumber(), pageSize, pageable.getSort());
+
         JPAQuery<ResStoreDtoV1> jpaQuery = query.select(getStoreProjection())
                 .from(qStore)
                 .join(qCategory).on(qStore.category.categoryId.eq(qCategory.categoryId))
-                .where(whereExpression(searchParam),
-                        qStore.isPublic.isTrue(),
-                        qStore.deletedAt.isNull()
-                )
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize());
+                .where(whereExpression(searchParam), permissionCondition(isAdmin))
+                .offset(adjustedPageable.getOffset())
+                .limit(adjustedPageable.getPageSize());
 
-        if (pageable.getSort().isSorted()) {
-            for (Sort.Order order : pageable.getSort()) {
+        if (adjustedPageable.getSort().isSorted()) {
+            for (Sort.Order order : adjustedPageable.getSort()) {
                 if (!ALLOWED_SORT_PROPERTIES.contains(order.getProperty())) {
                     continue;
                 }
@@ -71,11 +74,11 @@ public class CustomStoreRepositoryImpl implements CustomStoreRepository {
         JPAQuery<Long> count = query
                                     .select(qStore.count())
                                     .from(qStore)
-                                    .where(whereExpression(searchParam), qStore.isPublic.isTrue());
+                                    .where(whereExpression(searchParam), permissionCondition(isAdmin));
 
         List<ResStoreDtoV1> results = jpaQuery.fetch();
 
-        return PageableExecutionUtils.getPage(results, pageable, count::fetchOne);
+        return PageableExecutionUtils.getPage(results, adjustedPageable, count::fetchOne);
     }
 
     @Override
@@ -125,6 +128,17 @@ public class CustomStoreRepositoryImpl implements CustomStoreRepository {
 
         if(searchParam.getCategoryId() != null) {
             booleanBuilder.and(qStore.category.categoryId.eq(searchParam.getCategoryId()));
+        }
+
+        return booleanBuilder;
+    }
+
+    private BooleanBuilder permissionCondition(boolean isAdmin) {
+        BooleanBuilder booleanBuilder = new BooleanBuilder();
+
+        if(!isAdmin) {
+            booleanBuilder.and(qStore.isPublic.isTrue())
+                    .and(qStore.deletedAt.isNull());
         }
 
         return booleanBuilder;

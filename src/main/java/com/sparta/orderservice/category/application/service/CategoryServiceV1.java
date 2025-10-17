@@ -8,7 +8,6 @@ import com.sparta.orderservice.category.presentation.advice.CategoryExceptionLog
 import com.sparta.orderservice.category.presentation.dto.request.ReqCategoryDtoV1;
 import com.sparta.orderservice.category.presentation.dto.request.ReqCategoryUpdateDtoV1;
 import com.sparta.orderservice.category.presentation.dto.response.ResCategoryDtoV1;
-import com.sparta.orderservice.user.domain.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +25,7 @@ public class CategoryServiceV1 {
 
     public ResCategoryDtoV1 createCategory(ReqCategoryDtoV1 request, Long userId) {
         // 카테고리 존재 여부
-        checkCategoryNameDuplication(request.getName());
+        checkCategoryNameDuplication(request.getName(), userId);
 
         Category category = Category.ofNewCategory(request.getName(), userId);
 
@@ -53,19 +52,19 @@ public class CategoryServiceV1 {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new CategoryException(
                         CategoryErrorCode.CATEGORY_NOT_FOUND,
-                        CategoryExceptionLogUtils.getNotFoundMessage(categoryId, null)
+                        CategoryExceptionLogUtils.getNotFoundMessage(categoryId)
                 ));
 
         return convertResCategoryDto(category);
     }
 
     public ResCategoryDtoV1 updateCategory(UUID categoryId, ReqCategoryUpdateDtoV1 request, Long userId) {
-        checkCategoryNameDuplication(request.getName());
+        checkCategoryNameDuplication(request.getName(), userId);
 
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new CategoryException(
                         CategoryErrorCode.CATEGORY_NOT_FOUND,
-                        CategoryExceptionLogUtils.getNotFoundMessage(categoryId, null)
+                        CategoryExceptionLogUtils.getNotFoundMessage(categoryId, userId)
                 ));
 
         category.update(request.getName(), userId);
@@ -77,7 +76,7 @@ public class CategoryServiceV1 {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new CategoryException(
                         CategoryErrorCode.CATEGORY_NOT_FOUND,
-                        CategoryExceptionLogUtils.getNotFoundMessage(categoryId, null)
+                        CategoryExceptionLogUtils.getNotFoundMessage(categoryId, userId)
                 ));
 
         category.delete(userId);
@@ -87,11 +86,11 @@ public class CategoryServiceV1 {
         return new ResCategoryDtoV1(category.getCategoryId(), category.getName());
     }
 
-    private void checkCategoryNameDuplication(String name) {
-        if(categoryRepository.existsByName(name)) {
+    private void checkCategoryNameDuplication(String categoryName, Long userId) {
+        if(categoryRepository.existsByName(categoryName)) {
             throw new CategoryException(
                     CategoryErrorCode.CATEGORY_CONFLICT,
-                    CategoryExceptionLogUtils.getConflictMessage(name, null)
+                    CategoryExceptionLogUtils.getConflictMessage(categoryName, userId)
             );
         }
     }
