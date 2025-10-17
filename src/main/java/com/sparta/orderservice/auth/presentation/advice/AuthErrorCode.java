@@ -11,12 +11,12 @@ import org.springframework.http.HttpStatus;
 public enum AuthErrorCode implements ErrorCodeIfs {
 
     AUTH_NO_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, 1001, "토큰이 존재하지 않습니다."),
-    AUTH_TOKEN_TYPE_MISMATCH(HttpStatus.UNAUTHORIZED, 1001, "요청된 토큰 타입과 일치하지 않습니다."),
-    AUTH_INVALID_JWT_SIGNATURE(HttpStatus.UNAUTHORIZED, 1001, "유효하지 않은 JWT 서명입니다."),
-    AUTH_EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, 1001, "만료된 JWT 토큰입니다."),
-    AUTH_UNSUPPORTED_JWT_TOKEN(HttpStatus.BAD_REQUEST, 1001, "지원되지 않는 JWT 토큰입니다."),
-    AUTH_INVALID_CLAIMS(HttpStatus.BAD_REQUEST, 1001, "토큰 정보가 올바르지 않습니다."),
-    AUTH_INVALID_USER_DETAILS(HttpStatus.BAD_REQUEST, 1001, "인증 정보가 올바르지 않습니다.");
+    AUTH_TOKEN_TYPE_MISMATCH(HttpStatus.UNAUTHORIZED, 1002, "요청된 토큰 타입과 일치하지 않습니다."),
+    AUTH_INVALID_JWT_SIGNATURE(HttpStatus.UNAUTHORIZED, 1003, "유효하지 않은 JWT 서명입니다."),
+    AUTH_EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, 1004, "만료된 JWT 토큰입니다."),
+    AUTH_UNSUPPORTED_JWT_TOKEN(HttpStatus.BAD_REQUEST, 1005, "지원되지 않는 JWT 토큰입니다."),
+    AUTH_INVALID_CLAIMS(HttpStatus.BAD_REQUEST, 1006, "토큰 정보가 올바르지 않습니다."),
+    AUTH_INVALID_USER_DETAILS(HttpStatus.BAD_REQUEST, 1007, "인증 정보가 올바르지 않습니다.");
 
     private final HttpStatus httpStatus;
     private final Integer errorCode;
