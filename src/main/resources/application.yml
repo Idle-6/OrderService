@@ -24,6 +24,26 @@ spring:
       pageable:
         one-indexed-parameters: true
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: emailuser008321
+    password: wxnzngvdgcstxtua
+    properties:
+      mail:
+        smtp:
+          auth: true # SMTP 서버에 인증이 필요한 경우 true
+          starttls:
+            enable: true # TLS를 통해 안전한 통신 사용 여부
+          ssl:
+            trust: smtp.gmail.com
+          ssl.protocols: TLSv1.2
+#            required: true
+#          connectiontimeout: 5000 # 서버 연결 타임아웃
+#          timeout: 5000 # 이메일 전송 타임아웃
+#          writetimeout: 5000 # 작업 완료 타임아웃
+#    auth-code-expiration-millis: 900000 # 15 * 60 * 1000 = 15분
+
 jwt:
   secret:
     key: a0df1b20ad4c7f202a9ebc50645ab57b584e247df9c4c939
