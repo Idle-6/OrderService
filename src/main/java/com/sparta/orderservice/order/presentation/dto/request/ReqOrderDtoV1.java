@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -18,4 +19,5 @@ public class ReqOrderDtoV1 {
     private OrderStatus orderStatus;
     private Store storeId;
     private User userId;
+    private List<ReqOrderMenuDtoV1> orderMenus;
 }

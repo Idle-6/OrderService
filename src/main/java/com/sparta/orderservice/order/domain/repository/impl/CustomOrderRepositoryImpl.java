@@ -4,9 +4,11 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.sparta.orderservice.order.domain.entity.Order;
+import com.sparta.orderservice.order.domain.entity.OrderMenu;
 import com.sparta.orderservice.order.domain.entity.QOrder;
 import com.sparta.orderservice.order.domain.repository.CustomOrderRepository;
 import com.sparta.orderservice.order.presentation.dto.SearchParam;
+import com.sparta.orderservice.order.presentation.dto.request.ReqOrderMenuDtoV1;
 import com.sparta.orderservice.order.presentation.dto.response.QResOrderDetailDtoV1;
 import com.sparta.orderservice.order.presentation.dto.response.QResOrderDtoV1;
 import com.sparta.orderservice.order.presentation.dto.response.ResOrderDetailDtoV1;
@@ -40,7 +42,7 @@ public class CustomOrderRepositoryImpl extends QuerydslRepositorySupport impleme
         JPAQuery<ResOrderDtoV1> jpaQuery = query
                 .select(getOrderProjection())
                 .from(qOrder)
-                .join(qOrder.store).on(qOrder.store.storeId.eq(QStore.store.storeId))
+                .join(qOrder.store)
                 .where(whereExpression(searchParam))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize());
@@ -63,7 +65,7 @@ public class CustomOrderRepositoryImpl extends QuerydslRepositorySupport impleme
         JPAQuery<Long> countQuery = new JPAQuery<>(getEntityManager())
                 .select(qOrder.count())
                 .from(qOrder)
-                .join(qOrder.store).on(qOrder.store.storeId.eq(QStore.store.storeId))
+                .join(qOrder.store)
                 .where(whereExpression(searchParam));
 
         List<ResOrderDtoV1> results = jpaQuery.fetch();
@@ -79,7 +81,7 @@ public class CustomOrderRepositoryImpl extends QuerydslRepositorySupport impleme
                 .select(getOrderDetailProjection())
                 .from(qOrder)
                 .where(qOrder.orderId.eq(orderId))
-                .join(qOrder.store).on(qOrder.store.storeId.eq(QStore.store.storeId))
+                .join(qOrder.store)
                 .fetchOne();
 
         return Optional.ofNullable(result);
@@ -93,7 +95,7 @@ public class CustomOrderRepositoryImpl extends QuerydslRepositorySupport impleme
                 .select(getOrderDetailProjection())
                 .from(qOrder)
                 .where(qOrder.user.userId.eq(userId))
-                .join(qOrder.store).on(qOrder.store.storeId.eq(QStore.store.storeId))
+                .join(qOrder.store)
                 .fetchOne();
 
         return Optional.ofNullable(result);
@@ -119,22 +121,24 @@ public class CustomOrderRepositoryImpl extends QuerydslRepositorySupport impleme
     private QResOrderDtoV1 getOrderProjection() {
         return new QResOrderDtoV1(
                 qOrder.orderId,
-                qOrder.user.userId,
-                qOrder.store.storeId,
                 qOrder.totalPrice,
                 qOrder.orderStatus,
+                qOrder.store.name,
+                qOrder.store.description,
                 qOrder.createdAt
         );
     }
 
     private QResOrderDetailDtoV1 getOrderDetailProjection() {
+
         return new QResOrderDetailDtoV1(
                 qOrder.orderId,
-                qOrder.user.userId,
-                qOrder.store.storeId,
                 qOrder.orderMessage,
                 qOrder.totalPrice,
                 qOrder.orderStatus,
+                qOrder.store.name,
+                qOrder.store.description,
+                null, // 주문 메뉴
                 qOrder.createdAt,
                 qOrder.updatedAt
         );
