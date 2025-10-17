@@ -5,8 +5,8 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/order
-    username: order
-    password: 1234
+    username:
+    password:
 
   jpa:
     hibernate:
@@ -45,8 +45,11 @@ spring:
 #    auth-code-expiration-millis: 900000 # 15 * 60 * 1000 = 15분
 
 jwt:
-  secret-key: a0df1b20ad4c7f202a9ebc50645ab57b584e247df9c4c939
+  secret:
+    key: a0df1b20ad4c7f202a9ebc50645ab57b584e247df9c4c939
   access-token-time: 1800000  # 30분
-#  access-token-time: 5000  # 5초 (테스트용)
   refresh-token-time: 1209600000 # 14일
-  rt-rotate-time: 259200000 # 3일
+
+gemini:
+  api:
+    key: AIzaSyCajCwVkxfaWZ806nWIV3Ikzvs4LB878rM
