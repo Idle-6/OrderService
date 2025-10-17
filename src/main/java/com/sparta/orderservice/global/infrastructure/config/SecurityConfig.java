@@ -5,6 +5,7 @@ import com.sparta.orderservice.global.infrastructure.security.JwtAuthenticationF
 import com.sparta.orderservice.global.infrastructure.security.JwtAuthorizationFilter;
 import com.sparta.orderservice.global.infrastructure.security.JwtLogoutHandler;
 import com.sparta.orderservice.global.infrastructure.security.UserDetailsServiceImpl;
+import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
 import com.sparta.orderservice.user.domain.repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
