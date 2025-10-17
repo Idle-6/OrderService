@@ -34,8 +34,4 @@ public class MenuEntity extends BaseEntity {
 
     @Column(name="store_id", nullable = false)
     private UUID storeId;
-
-//    @ManyToOne
-//    @Column(name = "store_id")
-//    private StoreEntity store;
 }

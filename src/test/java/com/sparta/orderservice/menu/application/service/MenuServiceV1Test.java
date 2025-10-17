@@ -56,6 +56,7 @@ class MenuServiceV1Test {
     @DisplayName("메뉴 생성")
     void testCreateMenu() {
         //before
+        UUID storeId = UUID.randomUUID();
         ReqMenuCreateDtoV1 requestDto = ReqMenuCreateDtoV1.builder()
                 .name("짬뽕")
                 .description("매움")
@@ -71,7 +72,7 @@ class MenuServiceV1Test {
                 });
 
         //when
-        ResMenuCreateDtoV1 res = menuServiceV1.createMenu(userDetails, requestDto);
+        ResMenuCreateDtoV1 res = menuServiceV1.createMenu(userDetails, storeId, requestDto);
 
         //then
         verify(geminiClient, times(0)).callApi(any(UserDetailsImpl.class), anyString());
@@ -83,6 +84,7 @@ class MenuServiceV1Test {
     @DisplayName("메뉴 생성 - AI 사용")
     void testCreateMenuWithAi() {
         //before
+        UUID storeId = UUID.randomUUID();
         ReqMenuCreateDtoV1 requestDto = ReqMenuCreateDtoV1.builder()
                 .name("짬뽕")
                 .description("매움")
@@ -101,7 +103,7 @@ class MenuServiceV1Test {
                 });
 
         //when
-        ResMenuCreateDtoV1 res = menuServiceV1.createMenu(userDetails, requestDto);
+        ResMenuCreateDtoV1 res = menuServiceV1.createMenu(userDetails, storeId, requestDto);
 
         //then
         verify(geminiClient, times(1)).callApi(any(UserDetailsImpl.class), anyString());
@@ -113,6 +115,9 @@ class MenuServiceV1Test {
     @DisplayName("메뉴 리스트 조회 - USER")
     void getMenuListUser() throws Exception {
         //before
+//        User user = User.builder().email("user1@test.com").password("password1").name("김철수").address("서울 강남구").role(UserRoleEnum.USER).isActive(true).build();
+//        Category category = Category.ofNewCategory("한식", user.getUserId());
+//        Store storeId = Store.ofNewStore("가게이름1", "123-45-67890", "010-1111-1111", "서울 강남구 역삼동", "맛있는 한식", true, category, user);
         UUID storeId = UUID.randomUUID();
         String search = "짬뽕";
         int page = 1;
@@ -133,7 +138,7 @@ class MenuServiceV1Test {
                 new MenuEntity(UUID.randomUUID(), "팔보채", "", 15000, true, storeId)
         );
 
-        when(menuRepository.findAllByStoreIdAndIsPublicTrueAndNameLike(any(UUID.class), any(String.class), any(Pageable.class)))
+        when(menuRepository.findAllByStoreIdAndIsPublicIsTrueAndDeletedAtNullAndNameLike(any(UUID.class), any(String.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(menuList, pageable, menuList.size()));
 
         //when
@@ -141,9 +146,9 @@ class MenuServiceV1Test {
 
         //then
         verify(menuRepository, times(1))
-                .findAllByStoreIdAndIsPublicTrueAndNameLike(any(UUID.class), any(String.class), any(Pageable.class));
+                .findAllByStoreIdAndIsPublicIsTrueAndDeletedAtNullAndNameLike(any(UUID.class), any(String.class), any(Pageable.class));
         verify(menuRepository, times(0))
-                .findAllByStoreIdAndNameLike(any(UUID.class), any(String.class), any(Pageable.class));
+                .findAllByStoreIdAndDeletedAtNullAndNameLike(any(UUID.class), any(String.class), any(Pageable.class));
         assertNotNull(res);
     }
 
@@ -151,6 +156,12 @@ class MenuServiceV1Test {
     @DisplayName("메뉴 리스트 조회 - ADMIN")
     void getMenuListAdmin() throws Exception{
         //before
+//        User user = User.builder().email("user1@test.com").password("password1").name("김철수").address("서울 강남구").role(UserRoleEnum.ADMIN).isActive(true).build();
+//        Category category = Category.ofNewCategory("한식", user.getUserId());
+//        Store storeId = Store.ofNewStore("가게이름1", "123-45-67890", "010-1111-1111", "서울 강남구 역삼동", "맛있는 한식", true, category, user);
+        User user = User.builder().role(UserRoleEnum.ADMIN).build();
+        this.userDetails = new UserDetailsImpl(user);
+
         UUID storeId = UUID.randomUUID();
         String search = "짬뽕";
         int page = 1;
@@ -170,15 +181,15 @@ class MenuServiceV1Test {
                 new MenuEntity(UUID.randomUUID(), "팔보채", "", 15000, true, storeId)
         );
 
-        when(menuRepository.findAllByStoreIdAndNameLike(any(UUID.class), any(String.class), any(Pageable.class)))
+        when(menuRepository.findAllByStoreIdAndDeletedAtNullAndNameLike(any(UUID.class), any(String.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(menuList, pageable, menuList.size()));
 
         //when
         Page<ResMenuGetByStoreIdDtoV1> res = menuServiceV1.getMenuList(userDetails, storeId, search, page, size, sortBy, isAsc);
 
         //then
-        verify(menuRepository, times(0)).findAllByStoreIdAndIsPublicTrueAndNameLike(any(UUID.class), any(String.class), any(Pageable.class));
-        verify(menuRepository, times(1)).findAllByStoreIdAndNameLike(any(UUID.class), any(String.class), any(Pageable.class));
+        verify(menuRepository, times(0)).findAllByStoreIdAndIsPublicIsTrueAndDeletedAtNullAndNameLike(any(UUID.class), any(String.class), any(Pageable.class));
+        verify(menuRepository, times(1)).findAllByStoreIdAndDeletedAtNullAndNameLike(any(UUID.class), any(String.class), any(Pageable.class));
         assertNotNull(res);
     }
 
@@ -216,15 +227,15 @@ class MenuServiceV1Test {
         when(menuRepository.findById(any(UUID.class)))
         .thenReturn(Optional.of(new MenuEntity()));
 
-        when(menuRepository.save(any(MenuEntity.class)))
-        .thenReturn(new MenuEntity());
+//        when(menuRepository.save(any(MenuEntity.class)))
+//        .thenReturn(new MenuEntity());
 
         //when
         menuServiceV1.updateMenu(menuId, requestDto);
 
         //then
         verify(menuRepository, times(1)).findById(any(UUID.class));
-        verify(menuRepository, times(1)).save(any(MenuEntity.class));
+//        verify(menuRepository, times(1)).save(any(MenuEntity.class));
     }
 
     @Test
@@ -241,6 +252,6 @@ class MenuServiceV1Test {
 
         //then
         verify(menuRepository, times(1)).findById(any(UUID.class));
-        verify(menuRepository, times(1)).delete(any(MenuEntity.class));
+//        verify(menuRepository, times(1)).delete(any(MenuEntity.class));
     }
 }

@@ -9,9 +9,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface MenuRepository extends JpaRepository<MenuEntity, UUID> {
+
     Optional<MenuEntity> findByName(String name);
 
-    Page<MenuEntity> findAllByStoreIdAndNameLike(UUID storeId, String search, Pageable pageable);
+    Page<MenuEntity> findAllByStoreIdAndDeletedAtNullAndNameLike(UUID storeId, String search, Pageable pageable);
 
-    Page<MenuEntity> findAllByStoreIdAndIsPublicTrueAndNameLike(UUID storeId, String search, Pageable pageable);
+    Page<MenuEntity> findAllByStoreIdAndIsPublicIsTrueAndDeletedAtNullAndNameLike(UUID storeId, String search, Pageable pageable);
 }
