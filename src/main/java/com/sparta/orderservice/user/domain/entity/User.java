@@ -1,9 +1,9 @@
 package com.sparta.orderservice.user.domain.entity;
 // @EnableJpaAuditing
 // @EntityListeners(AuditingEntityListener.class) 
+
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -48,6 +48,18 @@ public class User {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    @Column(name = "created_by", nullable = false)
+    private Long createdBy;
+
+    @Column(name = "updated_by")
+    private Long updatedBy;
+
+    @Column(name = "deleted_by")
+    private Long deletedBy;
+
+    @Column(name = "token_expired_at")
+    private Long tokenExpiredAt;
+
     @PrePersist // 엔티티가 DB에 Insert 되기 전에 호출됨
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
@@ -65,15 +77,6 @@ public class User {
         this.updatedAt = LocalDateTime.now();
     }
 
-    @Column(name = "created_by", nullable = false)
-    private Long createdBy;
-
-    @Column(name = "updated_by")
-    private Long updatedBy;
-
-    @Column(name = "deleted_by")
-    private Long deletedBy;
-
     public void updateName(String name, Long updatedBy) {
         this.name = name;
         this.updatedBy = updatedBy;
@@ -88,10 +91,15 @@ public class User {
         this.isActive = false;
         this.deletedAt = LocalDateTime.now();
         this.deletedBy = deletedBy;
+        this.tokenExpiredAt = System.currentTimeMillis();
     }
 
     public void updatePassword(String password, Long updatedBy) {
         this.password = password;
         this.updatedBy = updatedBy;
+    }
+
+    public void updateTokenExpiredAt(Long tokenExpiredAt) {
+        this.tokenExpiredAt = tokenExpiredAt;
     }
 }

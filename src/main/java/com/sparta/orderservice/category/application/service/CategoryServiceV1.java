@@ -8,6 +8,7 @@ import com.sparta.orderservice.category.presentation.advice.CategoryExceptionLog
 import com.sparta.orderservice.category.presentation.dto.request.ReqCategoryDtoV1;
 import com.sparta.orderservice.category.presentation.dto.request.ReqCategoryUpdateDtoV1;
 import com.sparta.orderservice.category.presentation.dto.response.ResCategoryDtoV1;
+import com.sparta.orderservice.user.domain.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,13 +24,11 @@ public class CategoryServiceV1 {
 
     private final CategoryRepository categoryRepository;
 
-    public ResCategoryDtoV1 createCategory(ReqCategoryDtoV1 request) {
-
+    public ResCategoryDtoV1 createCategory(ReqCategoryDtoV1 request, Long userId) {
         // 카테고리 존재 여부
         checkCategoryNameDuplication(request.getName());
 
-        // todo: 수정필요
-        Category category = Category.ofNewCategory(request.getName(), null);
+        Category category = Category.ofNewCategory(request.getName(), userId);
 
         categoryRepository.save(category);
 
@@ -60,8 +59,7 @@ public class CategoryServiceV1 {
         return convertResCategoryDto(category);
     }
 
-    public ResCategoryDtoV1 updateCategory(UUID categoryId, ReqCategoryUpdateDtoV1 request) {
-
+    public ResCategoryDtoV1 updateCategory(UUID categoryId, ReqCategoryUpdateDtoV1 request, Long userId) {
         checkCategoryNameDuplication(request.getName());
 
         Category category = categoryRepository.findById(categoryId)
@@ -70,21 +68,19 @@ public class CategoryServiceV1 {
                         CategoryExceptionLogUtils.getNotFoundMessage(categoryId, null)
                 ));
 
-        // todo: 수정필요
-        category.update(request.getName(), null);
+        category.update(request.getName(), userId);
 
         return convertResCategoryDto(category);
     }
 
-    public void deleteCategory(UUID categoryId) {
+    public void deleteCategory(UUID categoryId, Long userId) {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new CategoryException(
                         CategoryErrorCode.CATEGORY_NOT_FOUND,
                         CategoryExceptionLogUtils.getNotFoundMessage(categoryId, null)
                 ));
 
-        // todo: 수정필요
-        category.delete(null);
+        category.delete(userId);
     }
 
     private ResCategoryDtoV1 convertResCategoryDto(Category category) {
