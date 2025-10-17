@@ -9,6 +9,7 @@ import com.sparta.orderservice.payment.presentation.advice.PaymentErrorCode;
 import com.sparta.orderservice.payment.presentation.advice.PaymentException;
 import com.sparta.orderservice.payment.presentation.advice.PaymentExceptionLogUtils;
 import com.sparta.orderservice.payment.presentation.dto.request.ReqPaymentDtoV1;
+import com.sparta.orderservice.payment.presentation.dto.request.ReqPaymentUpdateDtoV1;
 import com.sparta.orderservice.payment.presentation.dto.response.ResPaymentDtoV1;
 import com.sparta.orderservice.payment.presentation.dto.response.ResPaymentSummaryDtoV1;
 import com.sparta.orderservice.user.domain.entity.User;
@@ -37,6 +38,7 @@ public class PaymentServiceV1 {
                 request.getPayType(),
                 request.getAmount(),
                 PaymentStatusEnum.PAID,
+                request.getPgToken(),
                 order,
                 user
         );
@@ -60,15 +62,43 @@ public class PaymentServiceV1 {
                 ));
     }
 
+    public void updatePaymentStatus(UUID paymentId, ReqPaymentUpdateDtoV1 request, User user) {
+
+        Long userId = user.getUserId();
+
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new PaymentException(
+                PaymentErrorCode.PAYMENT_NOT_FOUND,
+                PaymentExceptionLogUtils.getNotFoundMessage(paymentId, userId)
+        ));
+
+        boolean isStoreOwner = Objects.equals(payment.getOrder().getStore().getCreatedBy().getUserId(), user.getUserId());
+        boolean isAdmin = Objects.equals(user.getRole(),UserRoleEnum.ADMIN);
+
+        if(!isStoreOwner && !isAdmin) {
+            throw new PaymentException(
+                    PaymentErrorCode.PAYMENT_UPDATE_STATUS_FORBIDDEN,
+                    PaymentExceptionLogUtils.getUpdateStatusMessage(paymentId, userId)
+            );
+        }
+
+        payment.updateStatus(request.getStatus(), userId);
+    }
+
     public void cancelPayment(UUID paymentId, User user) {
         Long userId = user.getUserId();
+
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new PaymentException(
                         PaymentErrorCode.PAYMENT_NOT_FOUND,
                         PaymentExceptionLogUtils.getNotFoundMessage(paymentId, userId)
                 ));
 
-        if(!hasPermission(payment, user)) {
+        boolean isStoreOwner = Objects.equals(payment.getOrder().getStore().getCreatedBy().getUserId(), user.getUserId());
+        boolean isAdmin = Objects.equals(user.getRole(), UserRoleEnum.ADMIN);
+        boolean isOrderOwner = Objects.equals(payment.getOrder().getUser().getUserId(), user.getUserId());
+
+        if(!isStoreOwner && !isAdmin && !isOrderOwner) {
             throw new PaymentException(
                     PaymentErrorCode.PAYMENT_CANCEL_FORBIDDEN,
                     PaymentExceptionLogUtils.getCancelMessage(paymentId, userId)
@@ -76,14 +106,6 @@ public class PaymentServiceV1 {
         }
 
         payment.cancel(userId);
-    }
-
-    private boolean hasPermission(Payment payment, User user) {
-        boolean isStoreOwner = Objects.equals(payment.getOrder().getStore().getCreatedBy().getUserId(), user.getUserId());
-        boolean isAdmin = Objects.equals(user.getRole().getAuthority(), UserRoleEnum.ADMIN.getAuthority());
-        boolean isOrderOwner = Objects.equals(payment.getOrder().getUser().getUserId(), user.getUserId());
-
-        return isOrderOwner || isStoreOwner || isAdmin;
     }
 
     private ResPaymentDtoV1 convertResPaymentDto(Payment payment, String userName) {

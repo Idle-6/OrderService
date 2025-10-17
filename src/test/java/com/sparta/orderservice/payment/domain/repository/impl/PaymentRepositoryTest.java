@@ -55,7 +55,7 @@ class PaymentRepositoryTest {
         order = Order.ofNewOrder(user, store, 100000, "주문 대기", user);
         manager.persistAndFlush(order);
 
-        payment = Payment.ofNewPayment(PaymentMethodEnum.CASH, 100000, PaymentStatusEnum.PAID, order, user);
+        payment = Payment.ofNewPayment(PaymentMethodEnum.CASH, 100000, PaymentStatusEnum.PAID, "9bd783a44bf24b7b96e4f72c3f1a1234", order, user);
         manager.persistAndFlush(payment);
 
         manager.clear();

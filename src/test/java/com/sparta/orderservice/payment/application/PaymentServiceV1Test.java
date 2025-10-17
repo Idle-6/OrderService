@@ -49,6 +49,7 @@ class PaymentServiceV1Test {
     User user, owner;
     Store store;
     Order order;
+    String pgToken = "9bd783a44bf24b7b96e4f72c3f1a1234";
     @BeforeEach
     void setUp() {
         owner = User.builder().email("owner@test.com").password("password").name("가게주인").address("서울 강남구").role(UserRoleEnum.OWNER).isActive(true).build();
@@ -66,7 +67,7 @@ class PaymentServiceV1Test {
     @Test
     @DisplayName("결제 완료")
     void completePayment() {
-        ReqPaymentDtoV1 request = new ReqPaymentDtoV1(UUID.randomUUID(), 100000, PaymentMethodEnum.MOBILE_PAY, null, null, null, null);
+        ReqPaymentDtoV1 request = new ReqPaymentDtoV1(UUID.randomUUID(), 100000, PaymentMethodEnum.MOBILE_PAY, pgToken);
         ReflectionTestUtils.setField(order, "orderId", UUID.randomUUID());
         when(orderRepository.findById(Mockito.any())).thenReturn(Optional.of(order));
 
@@ -110,7 +111,7 @@ class PaymentServiceV1Test {
     @Test
     @DisplayName("결제 취소 - 주문자")
     void cancelPayment() {
-        Payment payment = Payment.ofNewPayment(PaymentMethodEnum.CASH, 100000, PaymentStatusEnum.PAID, order, user);
+        Payment payment = Payment.ofNewPayment(PaymentMethodEnum.CASH, 100000, PaymentStatusEnum.PAID, pgToken, order, user);
         ReflectionTestUtils.setField(payment, "paymentId", UUID.randomUUID());
         when(paymentRepository.findById(Mockito.any())).thenReturn(Optional.of(payment));
 
@@ -122,7 +123,7 @@ class PaymentServiceV1Test {
     @Test
     @DisplayName("결제 취소 - 가게 주인")
     void cancelPayment_store() {
-        Payment payment = Payment.ofNewPayment(PaymentMethodEnum.CASH, 100000, PaymentStatusEnum.PAID, order, user);
+        Payment payment = Payment.ofNewPayment(PaymentMethodEnum.CASH, 100000, PaymentStatusEnum.PAID, pgToken, order, user);
         ReflectionTestUtils.setField(payment, "paymentId", UUID.randomUUID());
         when(paymentRepository.findById(Mockito.any())).thenReturn(Optional.of(payment));
 
@@ -134,7 +135,7 @@ class PaymentServiceV1Test {
     @Test
     @DisplayName("결제 취소 - 관리자")
     void cancelPayment_admin() {
-        Payment payment = Payment.ofNewPayment(PaymentMethodEnum.CASH, 100000, PaymentStatusEnum.PAID, order, user);
+        Payment payment = Payment.ofNewPayment(PaymentMethodEnum.CASH, 100000, PaymentStatusEnum.PAID, pgToken, order, user);
         ReflectionTestUtils.setField(payment, "paymentId", UUID.randomUUID());
 
         User admin = User.builder().email("admin@test.com").password("password").name("관리자").address("서울 강남구").role(UserRoleEnum.ADMIN).isActive(true).build();
@@ -150,7 +151,7 @@ class PaymentServiceV1Test {
     @Test
     @DisplayName("결제 취소 - 권한없음")
     void cancelPayment_forbidden() {
-        Payment payment = Payment.ofNewPayment(PaymentMethodEnum.CASH, 100000, PaymentStatusEnum.PAID, order, user);
+        Payment payment = Payment.ofNewPayment(PaymentMethodEnum.CASH, 100000, PaymentStatusEnum.PAID, pgToken, order, user);
         ReflectionTestUtils.setField(payment, "paymentId", UUID.randomUUID());
 
         User user = User.builder().email("user@test.com").password("password").name("user").address("서울 강남구").role(UserRoleEnum.USER).isActive(true).build();

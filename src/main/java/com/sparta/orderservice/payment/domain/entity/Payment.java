@@ -7,8 +7,8 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Comment;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -34,6 +34,10 @@ public class Payment {
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_status", nullable = false)
     private PaymentStatusEnum status;
+
+    @Column(name = "payment_token")
+    @Comment("결제시스템에서 제공하는 토큰")
+    private String token;
 
     @Column(updatable = false, nullable = false)
     private LocalDateTime createdAt;
@@ -64,16 +68,17 @@ public class Payment {
         this.updatedAt = LocalDateTime.now();
     }
 
-    private Payment(PaymentMethodEnum method, Integer amount, PaymentStatusEnum status, Order order, User user) {
+    private Payment(PaymentMethodEnum method, Integer amount, PaymentStatusEnum status, String token, Order order, User user) {
         this.method = method;
         this.amount = amount;
         this.status = status;
+        this.token = token;
         this.order = order;
         this.user = user;
     }
 
-    public static Payment ofNewPayment(PaymentMethodEnum method, Integer amount, PaymentStatusEnum status, Order order, User user) {
-        return new Payment(method, amount, status, order, user);
+    public static Payment ofNewPayment(PaymentMethodEnum method, Integer amount, PaymentStatusEnum status, String token, Order order, User user) {
+        return new Payment(method, amount, status, token, order, user);
     }
 
     public void updateStatus(PaymentStatusEnum status, Long updatedBy) {
