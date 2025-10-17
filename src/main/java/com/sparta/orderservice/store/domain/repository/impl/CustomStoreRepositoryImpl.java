@@ -16,15 +16,13 @@ import com.sparta.orderservice.store.presentation.dto.response.ResStoreDetailDto
 import com.sparta.orderservice.store.presentation.dto.response.ResStoreDtoV1;
 import com.sparta.orderservice.user.domain.entity.QUser;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.springframework.data.support.PageableExecutionUtils;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class CustomStoreRepositoryImpl extends QuerydslRepositorySupport implements CustomStoreRepository {
 
@@ -44,15 +42,23 @@ public class CustomStoreRepositoryImpl extends QuerydslRepositorySupport impleme
     public Page<ResStoreDtoV1> findStorePage(SearchParam searchParam, Pageable pageable, boolean isAdmin) {
         JPAQuery<Store> query = new JPAQuery<>(getEntityManager());
 
+        int pageSize = pageable.getPageSize();
+        List<Integer> allowedPageSizes = Arrays.asList(10, 30, 50);
+        if (!allowedPageSizes.contains(pageSize)) {
+            pageSize = 10;
+        }
+
+        Pageable adjustedPageable = PageRequest.of(pageable.getPageNumber(), pageSize, pageable.getSort());
+
         JPAQuery<ResStoreDtoV1> jpaQuery = query.select(getStoreProjection())
                 .from(qStore)
                 .join(qCategory).on(qStore.category.categoryId.eq(qCategory.categoryId))
                 .where(whereExpression(searchParam), permissionCondition(isAdmin))
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize());
+                .offset(adjustedPageable.getOffset())
+                .limit(adjustedPageable.getPageSize());
 
-        if (pageable.getSort().isSorted()) {
-            for (Sort.Order order : pageable.getSort()) {
+        if (adjustedPageable.getSort().isSorted()) {
+            for (Sort.Order order : adjustedPageable.getSort()) {
                 if (!ALLOWED_SORT_PROPERTIES.contains(order.getProperty())) {
                     continue;
                 }
@@ -65,15 +71,14 @@ public class CustomStoreRepositoryImpl extends QuerydslRepositorySupport impleme
         } else {
             jpaQuery.orderBy(qStore.createdAt.desc());
         }
-
         JPAQuery<Long> count = new JPAQuery<>(getEntityManager())
                                     .select(qStore.count())
                                     .from(qStore)
-                                    .where(whereExpression(searchParam), qStore.isPublic.isTrue());
+                                    .where(whereExpression(searchParam), permissionCondition(isAdmin));
 
         List<ResStoreDtoV1> results = jpaQuery.fetch();
 
-        return PageableExecutionUtils.getPage(results, pageable, count::fetchOne);
+        return PageableExecutionUtils.getPage(results, adjustedPageable, count::fetchOne);
     }
 
     @Override
