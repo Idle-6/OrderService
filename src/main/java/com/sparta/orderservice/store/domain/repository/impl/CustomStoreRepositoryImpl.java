@@ -39,7 +39,7 @@ public class CustomStoreRepositoryImpl implements CustomStoreRepository {
     QUser qUser = QUser.user;
 
     @Override
-    public Page<ResStoreDtoV1> findStorePage(SearchParam searchParam, Pageable pageable) {
+    public Page<ResStoreDtoV1> findStorePage(SearchParam searchParam, Pageable pageable, boolean isAdmin) {
 
         int pageSize = pageable.getPageSize();
         List<Integer> allowedPageSizes = Arrays.asList(10, 30, 50);
