@@ -11,6 +11,10 @@ public class StoreExceptionLogUtils {
         return "가게 없음: storeId=%s, 요청 사용자 ID=%s".formatted(storeId, userId);
     }
 
+    public static String getNoOwnedStoreErrorMessage(Long userId) {
+        return "소유 가게 없음: 사용자 ID=%s".formatted(userId);
+    }
+
     public static String getAlreadyOwnedMessage(Long userId) {
         return "이미 가게를 소유한 사용자입니다: 사용자 ID=%s".formatted(userId);
     }

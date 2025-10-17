@@ -64,7 +64,7 @@ public class StoreServiceV1 {
         return convertResStoreDetailDto(store);
     }
 
-    // 전체 조회 - 고객
+    // 전체 조회
     @Transactional(readOnly = true)
     public Page<ResStoreDtoV1> getStorePage(SearchParam search, Pageable pageable) {
 
@@ -78,6 +78,16 @@ public class StoreServiceV1 {
                 .orElseThrow(() -> new StoreException(
                         StoreErrorCode.STORE_NOT_FOUND,
                         StoreExceptionLogUtils.getNotFoundMessage(storeId)
+                ));
+    }
+
+    @Transactional(readOnly = true)
+    public ResStoreDetailDtoV1 getStoreForOwner(Long userId) {
+
+        return storeRepository.findStoreDetailByUserId(userId)
+                .orElseThrow(() -> new StoreException(
+                        StoreErrorCode.STORE_NOT_FOUND,
+                        StoreExceptionLogUtils.getNoOwnedStoreErrorMessage(userId)
                 ));
     }
 

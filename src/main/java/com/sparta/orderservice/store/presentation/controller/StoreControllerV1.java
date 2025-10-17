@@ -7,7 +7,6 @@ import com.sparta.orderservice.store.presentation.dto.request.ReqStoreDtoV1;
 import com.sparta.orderservice.store.presentation.dto.request.ReqStoreUpdateDtoV1;
 import com.sparta.orderservice.store.presentation.dto.response.ResStoreDetailDtoV1;
 import com.sparta.orderservice.store.presentation.dto.response.ResStoreDtoV1;
-import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,8 +25,6 @@ import java.util.UUID;
 public class StoreControllerV1 {
 
     private final StoreServiceV1 storeService;
-
-
 
     @PostMapping
     public ResponseEntity<ResStoreDetailDtoV1> createStore(@RequestBody @Valid ReqStoreDtoV1 request, @AuthenticationPrincipal UserDetailsImpl userDetails) {
@@ -49,6 +46,12 @@ public class StoreControllerV1 {
     @GetMapping("/{storeId}")
     public ResponseEntity<ResStoreDetailDtoV1> getStore(@PathVariable UUID storeId) {
         ResStoreDetailDtoV1 response = storeService.getStore(storeId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/owner")
+    public ResponseEntity<ResStoreDetailDtoV1> getStoreForOwner(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        ResStoreDetailDtoV1 response = storeService.getStoreForOwner(userDetails.getUser().getUserId());
         return ResponseEntity.ok(response);
     }
 
