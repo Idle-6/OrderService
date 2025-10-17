@@ -29,6 +29,6 @@ public class ReqStoreUpdateDtoV1 {
 
     private String description;
 
-    private boolean isPublic;
+    private Boolean isPublic;
 
 }
