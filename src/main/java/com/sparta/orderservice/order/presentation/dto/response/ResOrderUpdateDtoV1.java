@@ -1,6 +1,7 @@
 package com.sparta.orderservice.order.presentation.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.sparta.orderservice.order.domain.entity.OrderStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,7 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ResOrderUpdateDtoV1 {
     private UUID orderId;
-    private String orderStatus;
+    private OrderStatus orderStatus;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
 }

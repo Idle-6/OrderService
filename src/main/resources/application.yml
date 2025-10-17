@@ -25,11 +25,8 @@ spring:
         one-indexed-parameters: true
 
 jwt:
-  secret:
-    key: a0df1b20ad4c7f202a9ebc50645ab57b584e247df9c4c939
+  secret-key: a0df1b20ad4c7f202a9ebc50645ab57b584e247df9c4c939
   access-token-time: 1800000  # 30분
+#  access-token-time: 5000  # 5초 (테스트용)
   refresh-token-time: 1209600000 # 14일
-
-gemini:
-  api:
-    key: AIzaSyCajCwVkxfaWZ806nWIV3Ikzvs4LB878rM
+  rt-rotate-time: 259200000 # 3일

@@ -1,6 +1,9 @@
 package com.sparta.orderservice.auth.infrastructure.util;
 
+import com.sparta.orderservice.auth.presentation.advice.AuthErrorCode;
+import com.sparta.orderservice.auth.presentation.advice.AuthException;
 import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
+import com.sparta.orderservice.user.presentation.advice.UserException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
@@ -15,8 +18,6 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.security.Key;
 import java.util.Base64;
 import java.util.Date;
@@ -131,25 +132,28 @@ public class JwtUtil {
 
             String typ = claims.get(TOKEN_TYPE_KEY, String.class);
             if (requireAccess && !TOKEN_TYPE_ACCESS.equals(typ)) {
-                logger.error("Access 토큰이 아님");
-                return false;
+                logger.error(AuthErrorCode.AUTH_TOKEN_TYPE_MISMATCH.getErrorMessage());
+                throw new AuthException(AuthErrorCode.AUTH_TOKEN_TYPE_MISMATCH);
             }
 
             if (!requireAccess && !TOKEN_TYPE_REFRESH.equals(typ)) {
-                logger.error("Refresh 토큰이 아님");
-                return false;
+                logger.error(AuthErrorCode.AUTH_TOKEN_TYPE_MISMATCH.getErrorMessage());
+                throw new AuthException(AuthErrorCode.AUTH_TOKEN_TYPE_MISMATCH);
             }
             return true;
         } catch (SecurityException | MalformedJwtException | SignatureException e) {
-            logger.error("Invalid JWT signature, 유효하지 않는 JWT 서명 입니다.");
+            logger.error(AuthErrorCode.AUTH_INVALID_JWT_SIGNATURE.getErrorMessage());
+            throw new AuthException(AuthErrorCode.AUTH_INVALID_JWT_SIGNATURE);
         } catch (ExpiredJwtException e) {
-            logger.error("Expired JWT token, 만료된 JWT token 입니다.");
+            logger.error(AuthErrorCode.AUTH_EXPIRED_TOKEN.getErrorMessage());
+            throw new AuthException(AuthErrorCode.AUTH_EXPIRED_TOKEN);
         } catch (UnsupportedJwtException e) {
-            logger.error("Unsupported JWT token, 지원되지 않는 JWT 토큰 입니다.");
+            logger.error(AuthErrorCode.AUTH_UNSUPPORTED_JWT_TOKEN.getErrorMessage());
+            throw new AuthException(AuthErrorCode.AUTH_UNSUPPORTED_JWT_TOKEN);
         } catch (IllegalArgumentException e) {
-            logger.error("JWT claims is empty, 잘못된 JWT 토큰 입니다.");
+            logger.error(AuthErrorCode.AUTH_INVALID_CLAIMS.getErrorMessage());
+            throw new AuthException(AuthErrorCode.AUTH_INVALID_CLAIMS);
         }
-        return false;
     }
 
     /** 파싱 */
