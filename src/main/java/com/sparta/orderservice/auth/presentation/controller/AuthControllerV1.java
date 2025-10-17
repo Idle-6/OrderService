@@ -24,8 +24,7 @@ public class AuthControllerV1 {
     private final AuthServiceV1 authService;
 
     @PostMapping("/reissue")
-    public ResponseEntity<ResReissueDtoV1> reissue (@CookieValue(value = JwtUtil.REFRESH_COOKIE_NAME) String rtFromCookie, HttpServletResponse response) {
-        String refreshToken = rtFromCookie;
+    public ResponseEntity<ResReissueDtoV1> reissue (@CookieValue(value = JwtUtil.REFRESH_COOKIE_NAME) String refreshToken, HttpServletResponse response) {
         ResReissueDtoV1 body = authService.reissue(refreshToken, response);
         body.setMessage("로그인 시간이 연장되었습니다.");
 
