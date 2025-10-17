@@ -1,5 +1,6 @@
 package com.sparta.orderservice.payment.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum PaymentMethodEnum {
@@ -22,6 +23,7 @@ public enum PaymentMethodEnum {
         return displayName;
     }
 
+    @JsonCreator
     public static PaymentMethodEnum fromDisplayName(String displayName) {
         for(PaymentMethodEnum method : PaymentMethodEnum.values()) {
             if(method.getDisplayName().equals(displayName)) {

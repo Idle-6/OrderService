@@ -1,6 +1,7 @@
 package com.sparta.orderservice.order.domain.repository;
 
 import com.sparta.orderservice.category.domain.entity.Category;
+import com.sparta.orderservice.global.infrastructure.querydsl.QuerydslConfig;
 import com.sparta.orderservice.order.domain.entity.Order;
 import com.sparta.orderservice.order.domain.entity.OrderStatus;
 import com.sparta.orderservice.order.presentation.dto.response.ResOrderDetailDtoV1;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
@@ -30,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DataJpaTest
 @ActiveProfiles("test")
 @DisplayName("주문 레포지토리 테스트")
+@Import(QuerydslConfig.class)
 public class OrderRepositoryTest {
 
     @Autowired

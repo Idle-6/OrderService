@@ -3,17 +3,16 @@ package com.sparta.orderservice.order.domain.repository.impl;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sparta.orderservice.order.domain.entity.Order;
-import com.sparta.orderservice.order.domain.entity.OrderMenu;
 import com.sparta.orderservice.order.domain.entity.QOrder;
 import com.sparta.orderservice.order.domain.repository.CustomOrderRepository;
 import com.sparta.orderservice.order.presentation.dto.SearchParam;
-import com.sparta.orderservice.order.presentation.dto.request.ReqOrderMenuDtoV1;
 import com.sparta.orderservice.order.presentation.dto.response.QResOrderDetailDtoV1;
 import com.sparta.orderservice.order.presentation.dto.response.QResOrderDtoV1;
 import com.sparta.orderservice.order.presentation.dto.response.ResOrderDetailDtoV1;
 import com.sparta.orderservice.order.presentation.dto.response.ResOrderDtoV1;
-import com.sparta.orderservice.store.domain.entity.QStore;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -24,20 +23,17 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public class CustomOrderRepositoryImpl extends QuerydslRepositorySupport implements CustomOrderRepository {
+@RequiredArgsConstructor
+public class CustomOrderRepositoryImpl implements CustomOrderRepository {
+
+    private final JPAQueryFactory query;
 
     private static final String[] ALLOWED_SORT_PROPERTIES = {"totalPrice", "createdAt"};
 
-    private final QOrder qOrder = QOrder.order;
-
-    public CustomOrderRepositoryImpl() {
-        super(Order.class);
-    }
+    QOrder qOrder = QOrder.order;
 
     @Override
     public Page<ResOrderDtoV1> findOrderPage(SearchParam searchParam, Pageable pageable) {
-
-        JPAQuery<Order> query = new JPAQuery<>(getEntityManager());
 
         JPAQuery<ResOrderDtoV1> jpaQuery = query
                 .select(getOrderProjection())
@@ -62,7 +58,7 @@ public class CustomOrderRepositoryImpl extends QuerydslRepositorySupport impleme
         }
 
         // 총 개수
-        JPAQuery<Long> countQuery = new JPAQuery<>(getEntityManager())
+        JPAQuery<Long> countQuery = query
                 .select(qOrder.count())
                 .from(qOrder)
                 .join(qOrder.store)
@@ -75,7 +71,6 @@ public class CustomOrderRepositoryImpl extends QuerydslRepositorySupport impleme
 
     @Override
     public Optional<ResOrderDetailDtoV1> findOrderDetailById(UUID orderId) {
-        JPAQuery<Order> query = new JPAQuery<>(getEntityManager());
 
         ResOrderDetailDtoV1 result = query
                 .select(getOrderDetailProjection())
@@ -89,7 +84,6 @@ public class CustomOrderRepositoryImpl extends QuerydslRepositorySupport impleme
 
     @Override
     public Optional<ResOrderDetailDtoV1> findOrderDetailByUserId(Long userId) {
-        JPAQuery<Order> query = new JPAQuery<>(getEntityManager());
 
         ResOrderDetailDtoV1 result = query
                 .select(getOrderDetailProjection())

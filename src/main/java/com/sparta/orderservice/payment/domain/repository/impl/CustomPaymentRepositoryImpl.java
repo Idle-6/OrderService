@@ -29,14 +29,14 @@ public class CustomPaymentRepositoryImpl implements CustomPaymentRepository {
     QUser qUser = QUser.user;
 
     @Override
-    public Page<ResPaymentSummaryDtoV1> findPaymentListByUserId(Long userId, Pageable pageable) {
+    public Page<ResPaymentSummaryDtoV1> findPaymentPageByUserId(Long userId, Pageable pageable) {
         List<ResPaymentSummaryDtoV1> resultList = query.select(
-                new QResPaymentSummaryDtoV1(
-                    qPayment.paymentId,
-                    qPayment.amount,
-                    qPayment.status,
-                    qPayment.createdAt
-                ))
+                        new QResPaymentSummaryDtoV1(
+                                qPayment.paymentId,
+                                qPayment.amount,
+                                qPayment.status,
+                                qPayment.createdAt
+                        ))
                 .from(qPayment)
                 .leftJoin(qOrder).on(qPayment.order.eq(qOrder))
                 .leftJoin(qUser).on(qPayment.user.eq(qUser))
@@ -55,22 +55,46 @@ public class CustomPaymentRepositoryImpl implements CustomPaymentRepository {
     @Override
     public Optional<ResPaymentDtoV1> findPaymentByUserId(UUID paymentId, Long userId) {
         ResPaymentDtoV1 result = query.select(
-                new QResPaymentDtoV1(
-                        qPayment.paymentId,
-                        qPayment.order.orderId,
-                        qPayment.amount,
-                        qPayment.method,
-                        qPayment.user.name,
-                        qPayment.status,
-                        qPayment.createdAt,
-                        qPayment.updatedAt,
-                        qPayment.deletedAt
+                        new QResPaymentDtoV1(
+                                qPayment.paymentId,
+                                qPayment.order.orderId,
+                                qPayment.amount,
+                                qPayment.method,
+                                qPayment.user.name,
+                                qPayment.status,
+                                qPayment.createdAt,
+                                qPayment.updatedAt,
+                                qPayment.deletedAt
 
-                ))
+                        ))
                 .from(qPayment)
                 .leftJoin(qOrder).on(qPayment.order.eq(qOrder))
                 .leftJoin(qUser).on(qPayment.user.eq(qUser))
                 .where(qUser.userId.eq(userId), qPayment.paymentId.eq(paymentId))
+                .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+
+    @Override
+    public Optional<ResPaymentDtoV1> findPaymentByOrderId(UUID orderId, Long userId) {
+        ResPaymentDtoV1 result = query.select(
+                        new QResPaymentDtoV1(
+                                qPayment.paymentId,
+                                qPayment.order.orderId,
+                                qPayment.amount,
+                                qPayment.method,
+                                qPayment.user.name,
+                                qPayment.status,
+                                qPayment.createdAt,
+                                qPayment.updatedAt,
+                                qPayment.deletedAt
+
+                        ))
+                .from(qPayment)
+                .leftJoin(qOrder).on(qPayment.order.eq(qOrder))
+                .leftJoin(qUser).on(qPayment.user.eq(qUser))
+                .where(qUser.userId.eq(userId), qPayment.order.orderId.eq(orderId))
                 .fetchOne();
 
         return Optional.ofNullable(result);

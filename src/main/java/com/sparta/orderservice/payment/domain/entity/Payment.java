@@ -3,10 +3,7 @@ package com.sparta.orderservice.payment.domain.entity;
 import com.sparta.orderservice.order.domain.entity.Order;
 import com.sparta.orderservice.user.domain.entity.User;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -17,6 +14,7 @@ import java.util.UUID;
 @Table(name = "p_payment")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Builder
 public class Payment {
 
     @Id
@@ -29,7 +27,7 @@ public class Payment {
     private PaymentMethodEnum method;
 
     @Column(name = "payment_amount", nullable = false)
-    private BigDecimal amount;
+    private Integer amount;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_status", nullable = false)
@@ -64,7 +62,7 @@ public class Payment {
         this.updatedAt = LocalDateTime.now();
     }
 
-    private Payment(PaymentMethodEnum method, BigDecimal amount, PaymentStatusEnum status, Order order, User user) {
+    private Payment(PaymentMethodEnum method, Integer amount, PaymentStatusEnum status, Order order, User user) {
         this.method = method;
         this.amount = amount;
         this.status = status;
@@ -72,7 +70,7 @@ public class Payment {
         this.user = user;
     }
 
-    public static Payment ofNewPayment(PaymentMethodEnum method, BigDecimal amount, PaymentStatusEnum status, Order order, User user) {
+    public static Payment ofNewPayment(PaymentMethodEnum method, Integer amount, PaymentStatusEnum status, Order order, User user) {
         return new Payment(method, amount, status, order, user);
     }
 

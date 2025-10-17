@@ -12,7 +12,13 @@ import com.sparta.orderservice.order.presentation.dto.request.ReqOrderDtoV1;
 import com.sparta.orderservice.order.presentation.dto.request.ReqOrderMenuDtoV1;
 import com.sparta.orderservice.order.presentation.dto.response.ResOrderDetailDtoV1;
 import com.sparta.orderservice.order.presentation.dto.response.ResOrderDtoV1;
-import com.sparta.orderservice.store.application.service.StoreServiceV1;
+import com.sparta.orderservice.payment.application.PaymentServiceV1;
+import com.sparta.orderservice.payment.domain.entity.Payment;
+import com.sparta.orderservice.payment.domain.entity.PaymentMethodEnum;
+import com.sparta.orderservice.payment.domain.entity.PaymentStatusEnum;
+import com.sparta.orderservice.payment.domain.repository.PaymentRepository;
+import com.sparta.orderservice.payment.presentation.dto.request.ReqPaymentDtoV1;
+import com.sparta.orderservice.payment.presentation.dto.response.ResPaymentDtoV1;
 import com.sparta.orderservice.store.domain.entity.Store;
 import com.sparta.orderservice.store.domain.repository.StoreRepository;
 import com.sparta.orderservice.order.presentation.dto.SearchParam;
@@ -30,6 +36,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -38,8 +46,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class OrderServiceV1Test {
@@ -49,6 +56,12 @@ public class OrderServiceV1Test {
 
     @InjectMocks
     OrderServiceV1 orderServiceV1;
+
+    @Mock
+    PaymentRepository paymentRepository;
+
+    @Mock
+    PaymentServiceV1 paymentService;
 
     @Mock
     MenuRepository menuRepository;
@@ -64,9 +77,10 @@ public class OrderServiceV1Test {
     Store store;
     Order order;
     MenuEntity menu1, menu2;
-    UUID orderId, storeId, categoryId, menuId1, menuId2;
+    UUID orderId, storeId, categoryId, menuId1, menuId2, paymentId;
     ReqOrderMenuDtoV1 menuDto1, menuDto2;
     List<ReqOrderMenuDtoV1> orderMenus;
+    Payment payment;
 
     @BeforeEach
     void setUp() {
@@ -108,25 +122,41 @@ public class OrderServiceV1Test {
         menuDto1 = new ReqOrderMenuDtoV1(menuId1, 2);
         menuDto2 = new ReqOrderMenuDtoV1(menuId2, 1);
         orderMenus = List.of(menuDto1, menuDto2);
+        paymentId = UUID.randomUUID();
+        payment = Payment.builder().paymentId(paymentId).method(PaymentMethodEnum.CARD).amount(16000).status(PaymentStatusEnum.PAID).order(order).user(user).build();
 
     }
 
     @Test
     @DisplayName("주문 생성")
     void createOrder() {
+        ResPaymentDtoV1 paymentDto = new ResPaymentDtoV1(
+                paymentId,
+                orderId,
+                5000,
+                PaymentMethodEnum.CARD,
+                user.getName(),
+                PaymentStatusEnum.PAID,
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                null
+        );
+
 
         when(menuRepository.findById(menuId1)).thenReturn(Optional.of(menu1));
         when(menuRepository.findById(menuId2)).thenReturn(Optional.of(menu2));
         when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
+        when(paymentService.completePayment(any(ReqPaymentDtoV1.class), eq(user))).thenReturn(paymentDto);
 
         ReqOrderDtoV1 request = new ReqOrderDtoV1(0, "배고파요", OrderStatus.CREATED, store, user, orderMenus);
 
-        ResOrderDtoV1 response = orderServiceV1.createOrder(request);
+        ResOrderDtoV1 response = orderServiceV1.createOrder(request, user);
 
         verify(menuRepository, Mockito.times(1)).findById(menuId1);
         verify(menuRepository, Mockito.times(1)).findById(menuId2);
         verify(storeRepository, Mockito.times(1)).findById(storeId);
         verify(orderRepository, Mockito.times(1)).save(Mockito.any(Order.class));
+        verify(paymentService, times(1)).completePayment(any(ReqPaymentDtoV1.class), eq(user));
 
         System.out.println("총 가격: " + response.getTotalPrice());
     }
@@ -158,7 +188,7 @@ public class OrderServiceV1Test {
 
     @Test
     @DisplayName("주문 상태 변경")
-    void updateStore() {
+    void updateOrder() {
         when(orderRepository.findById(Mockito.any())).thenReturn(Optional.of(order));
 
         orderServiceV1.updateOrderStatus(orderId, OrderStatus.ACCEPTED, user);
@@ -168,12 +198,29 @@ public class OrderServiceV1Test {
 
     @Test
     @DisplayName("주문 취소")
-    void deleteStore() {
-        when(orderRepository.findById(Mockito.any())).thenReturn(Optional.of(order));
+    void deleteOrder() {
+        ResPaymentDtoV1 paymentDto = new ResPaymentDtoV1(
+                paymentId,
+                orderId,
+                15000,
+                PaymentMethodEnum.CARD,
+                "testuser",
+                PaymentStatusEnum.PAID,
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                null
+        );
+
+        when(orderRepository.findById(any())).thenReturn(Optional.of(order));
+        when(paymentRepository.findPaymentByOrderId(orderId, user.getUserId()))
+                .thenReturn(Optional.of(paymentDto));
+
+        doNothing().when(paymentService).cancelPayment(paymentId, user);
 
         orderServiceV1.cancelOrder(orderId, user);
 
-        verify(orderRepository, Mockito.times(1)).findById(Mockito.any());
+        verify(orderRepository, times(1)).findById(any());
+        verify(paymentService, times(1)).cancelPayment(paymentId, user);
     }
 
 }

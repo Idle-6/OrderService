@@ -1,5 +1,6 @@
 package com.sparta.orderservice.payment.presentation.controller;
 
+import com.sparta.orderservice.global.infrastructure.security.UserDetailsImpl;
 import com.sparta.orderservice.payment.application.PaymentServiceV1;
 import com.sparta.orderservice.payment.presentation.dto.request.ReqPaymentDtoV1;
 import com.sparta.orderservice.payment.presentation.dto.response.ResPaymentDtoV1;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -24,8 +26,8 @@ public class PaymentControllerV1 {
     private final PaymentServiceV1 paymentService;
 
     @PostMapping
-    public ResponseEntity<ResPaymentDtoV1> completePayment(@RequestBody @Valid ReqPaymentDtoV1 request) {
-        ResPaymentDtoV1 response = paymentService.completePayment(request);
+    public ResponseEntity<ResPaymentDtoV1> completePayment(@RequestBody @Valid ReqPaymentDtoV1 request, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        ResPaymentDtoV1 response = paymentService.completePayment(request, userDetails.getUser());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -37,16 +39,17 @@ public class PaymentControllerV1 {
                     sort = "createdAt",
                     direction = Sort.Direction.DESC
             )
-            Pageable pageable
+            Pageable pageable,
+            @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        Page<ResPaymentSummaryDtoV1> response = paymentService.getPaymentPage(pageable);
+        Page<ResPaymentSummaryDtoV1> response = paymentService.getPaymentPage(pageable, userDetails.getUser().getUserId());
 
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{paymentId}")
-    public ResponseEntity<ResPaymentDtoV1> getPayment(@PathVariable(name = "paymentId") UUID paymentId) {
-        ResPaymentDtoV1 response = paymentService.getPayment(paymentId);
+    public ResponseEntity<ResPaymentDtoV1> getPayment(@PathVariable(name = "paymentId") UUID paymentId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        ResPaymentDtoV1 response = paymentService.getPayment(paymentId, userDetails.getUser().getUserId());
 
         return ResponseEntity.ok(response);
     }

@@ -46,8 +46,9 @@ public class OrderControllerV1 {
 
     // 주문 생성
     @PostMapping
-    public ResponseEntity<ResOrderDtoV1> createOrder(@RequestBody ReqOrderDtoV1 request) {
-        ResOrderDtoV1 response = orderService.createOrder(request);
+    public ResponseEntity<ResOrderDtoV1> createOrder(@RequestBody ReqOrderDtoV1 request,
+                                                     @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        ResOrderDtoV1 response = orderService.createOrder(request, userDetails.getUser());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
