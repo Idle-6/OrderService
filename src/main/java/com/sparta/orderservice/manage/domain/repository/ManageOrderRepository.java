@@ -12,6 +12,8 @@ import java.util.UUID;
 public interface ManageOrderRepository extends JpaRepository<Order, UUID>, JpaSpecificationExecutor<Order> {
     List<Order> findByUser_UserId(Long userId);
 
-    @EntityGraph(attributePaths = {"user", "store" /* , "orderMenus", "orderMenus.menu" */})
+    @EntityGraph(attributePaths = {
+            "user", "store", "orderMenus", "orderMenus.menu"
+    })
     Optional<Order> findByOrderId(UUID orderId);
 }

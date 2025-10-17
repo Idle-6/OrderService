@@ -18,7 +18,7 @@ public interface ManageUserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByUserId(Long userId);
 
-    // 활성화 (soft-delete 해제)
+    // 활성화
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
        update User u
