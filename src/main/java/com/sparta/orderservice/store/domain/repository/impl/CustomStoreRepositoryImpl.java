@@ -5,6 +5,7 @@ import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sparta.orderservice.category.domain.entity.QCategory;
 import com.sparta.orderservice.store.domain.entity.QStore;
 import com.sparta.orderservice.store.domain.entity.Store;
@@ -15,10 +16,10 @@ import com.sparta.orderservice.store.presentation.dto.response.QResStoreDtoV1;
 import com.sparta.orderservice.store.presentation.dto.response.ResStoreDetailDtoV1;
 import com.sparta.orderservice.store.presentation.dto.response.ResStoreDtoV1;
 import com.sparta.orderservice.user.domain.entity.QUser;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.springframework.data.support.PageableExecutionUtils;
 
 import java.util.List;
@@ -26,11 +27,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-public class CustomStoreRepositoryImpl extends QuerydslRepositorySupport implements CustomStoreRepository {
+@RequiredArgsConstructor
+public class CustomStoreRepositoryImpl implements CustomStoreRepository {
 
-    public CustomStoreRepositoryImpl() {
-        super(Store.class);
-    }
+    private final JPAQueryFactory query;
 
     private static final Set<String> ALLOWED_SORT_PROPERTIES = Set.of(
             "name", "address", "createdAt", "reviewCount", "averageRating"
@@ -42,7 +42,6 @@ public class CustomStoreRepositoryImpl extends QuerydslRepositorySupport impleme
 
     @Override
     public Page<ResStoreDtoV1> findStorePage(SearchParam searchParam, Pageable pageable) {
-        JPAQuery<Store> query = new JPAQuery<>(getEntityManager());
 
         JPAQuery<ResStoreDtoV1> jpaQuery = query.select(getStoreProjection())
                 .from(qStore)
@@ -69,7 +68,7 @@ public class CustomStoreRepositoryImpl extends QuerydslRepositorySupport impleme
             jpaQuery.orderBy(qStore.createdAt.desc());
         }
 
-        JPAQuery<Long> count = new JPAQuery<>(getEntityManager())
+        JPAQuery<Long> count = query
                                     .select(qStore.count())
                                     .from(qStore)
                                     .where(whereExpression(searchParam), qStore.isPublic.isTrue());
@@ -81,7 +80,6 @@ public class CustomStoreRepositoryImpl extends QuerydslRepositorySupport impleme
 
     @Override
     public Optional<ResStoreDetailDtoV1> findStoreDetailById(UUID storeId) {
-        JPAQuery<Store> query = new JPAQuery<>(getEntityManager());
 
         ResStoreDetailDtoV1 response = query.select(getStoreDetailProjection())
                 .from(qStore)
@@ -94,7 +92,6 @@ public class CustomStoreRepositoryImpl extends QuerydslRepositorySupport impleme
 
     @Override
     public Optional<ResStoreDetailDtoV1> findStoreDetailByUserId(Long userId) {
-        JPAQuery<Store> query = new JPAQuery<>(getEntityManager());
 
         ResStoreDetailDtoV1 response = query.select(getStoreDetailProjection())
                 .from(qStore)
@@ -106,7 +103,6 @@ public class CustomStoreRepositoryImpl extends QuerydslRepositorySupport impleme
 
     @Override
     public boolean existsStoreByUserId(Long userId) {
-        JPAQuery<Store> query = new JPAQuery<>(getEntityManager());
 
         Long exist = query.select(qStore.count())
                 .from(qStore)
