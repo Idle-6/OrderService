@@ -5,10 +5,12 @@ import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.sparta.orderservice.order.domain.entity.QOrder;
 import com.sparta.orderservice.payment.domain.entity.QPayment;
 import com.sparta.orderservice.payment.domain.repository.CustomPaymentRepository;
 import com.sparta.orderservice.payment.presentation.dto.SearchParam;
 import com.sparta.orderservice.payment.presentation.dto.response.*;
+import com.sparta.orderservice.user.domain.entity.QUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +27,8 @@ public class CustomPaymentRepositoryImpl implements CustomPaymentRepository {
     private final JPAQueryFactory query;
 
     QPayment qPayment = QPayment.payment;
+    QOrder qOrder = QOrder.order;
+    QUser qUser = QUser.user;
 
     @Override
     public Page<ResManagerPaymentDtoV1> findPaymentPage(SearchParam searchParam, Pageable pageable) {
