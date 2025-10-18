@@ -74,7 +74,7 @@ public class PaymentServiceV1 {
 
         Store store = storeRepository.findById(storeId).orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND, StoreExceptionLogUtils.getNotFoundMessage(storeId, user.getUserId())));
 
-        if(store.getCreatedBy() != user) {
+        if(!store.getCreatedBy().getUserId().equals(user.getUserId())) {
             throw new PaymentException(PaymentErrorCode.PAYMENT_VIEW_FORBIDDEN, PaymentExceptionLogUtils.getViewForbiddenMessage(storeId, user.getUserId()));
         }
 

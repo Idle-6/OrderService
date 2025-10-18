@@ -80,6 +80,7 @@ public class SecurityConfig {
                         .requestMatchers("/v1/users/sign-up").permitAll() // 회원가입 요청 접근 허가
                         .requestMatchers(HttpMethod.GET, "/v1/stores/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/categorys").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/v1/stores").hasAuthority(UserRoleEnum.OWNER.getAuthority())
                         .requestMatchers(HttpMethod.POST, "/v1/categorys/**").hasAuthority(UserRoleEnum.ADMIN.getAuthority())
                         .requestMatchers(HttpMethod.PATCH, "/v1/categorys/**").hasAuthority(UserRoleEnum.ADMIN.getAuthority())
                         .requestMatchers(HttpMethod.DELETE, "/v1/categorys/**").hasAuthority(UserRoleEnum.ADMIN.getAuthority())
