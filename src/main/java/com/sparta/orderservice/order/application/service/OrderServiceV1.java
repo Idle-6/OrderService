@@ -68,11 +68,11 @@ public class OrderServiceV1 {
 
         // 주문 생성 (totalPrice 초기값 0으로)
         Order order = Order.ofNewOrder(
-                request.getUserId(),
+                user,
                 request.getStoreId(),
                 0,
                 request.getOrderMessage(),
-                request.getUserId()
+                user
         );
 
         int totalPrice = 0;
@@ -120,18 +120,32 @@ public class OrderServiceV1 {
 
     // 주문 리스트 조회
     @Transactional(readOnly = true)
-    public Page<ResOrderDtoV1> getOrders(SearchParam param, Pageable pageable) {
-        return orderRepository.findOrderPage(param, pageable);
+    public Page<ResOrderDtoV1> getOrders(SearchParam param, Pageable pageable, User user) {
+        return orderRepository.findOrderPage(param, pageable, user);
     }
 
     // 주문 상세 조회
     @Transactional(readOnly = true)
-    public ResOrderDetailDtoV1 getOrderDetail(UUID orderId) {
+    public ResOrderDetailDtoV1 getOrderDetail(UUID orderId, User user) {
+        Long userId = user.getUserId();
+
         ResOrderDetailDtoV1 order = orderRepository.findOrderDetailById(orderId)
                 .orElseThrow(() -> new OrderException(
                         OrderErrorCode.ORDER_NOT_FOUND,
-                        OrderExceptionLogUtils.getNotFoundMessage(orderId, null)
+                        OrderExceptionLogUtils.getNotFoundMessage(orderId, userId)
                 ));
+
+        Order findOrder = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        // 권한 체크
+        if (!hasPermission(user, findOrder)) {
+            throw new OrderException(
+                    OrderErrorCode.ORDER_UPDATE_FORBIDDEN,
+                    OrderExceptionLogUtils.getUpdateForbiddenMessage(orderId, userId)
+            );
+        }
+
 
         // 주문 메뉴 DTO로 변환
         List<ReqOrderMenuDtoV1> orderMenus = order.getOrderMenus().stream()
@@ -165,7 +179,9 @@ public class OrderServiceV1 {
                         OrderExceptionLogUtils.getNotFoundMessage(orderId, userId)
                 ));
 
-        if (!hasPermission(user, order)) {
+        // 권한 체크
+        if (Objects.equals(user.getRole().getAuthority(), UserRoleEnum.USER.getAuthority()) ||
+                !hasPermission(user, order)) {
             throw new OrderException(
                     OrderErrorCode.ORDER_UPDATE_FORBIDDEN,
                     OrderExceptionLogUtils.getUpdateForbiddenMessage(orderId, userId)
@@ -199,6 +215,7 @@ public class OrderServiceV1 {
                         PaymentExceptionLogUtils.getNotFoundMessage(orderId, userId)
                 ));
 
+        // 권한 체크
         if (!hasPermission(user, order)) {
             throw new OrderException(
                     OrderErrorCode.ORDER_UPDATE_FORBIDDEN,
@@ -210,7 +227,7 @@ public class OrderServiceV1 {
         if (order.getOrderStatus() != OrderStatus.CREATED) {
             throw new OrderException(
                     OrderErrorCode.ORDER_CANCEL_FORBIDDEN,
-                    OrderExceptionLogUtils.getUpdateForbiddenMessage(orderId, userId)
+                    OrderExceptionLogUtils.getCancelForbiddenMessage(orderId, userId)
             );
         }
 
@@ -229,8 +246,11 @@ public class OrderServiceV1 {
 
     private boolean hasPermission(User user, Order order) {
         boolean isAdmin = Objects.equals(user.getRole().getAuthority(), UserRoleEnum.ADMIN.getAuthority());
-        boolean isOwner = Objects.equals(order.getCreatedBy().getUserId(), user.getUserId());
-        return isAdmin || isOwner;
+        boolean isOwner = Objects.equals(user.getRole().getAuthority(), UserRoleEnum.OWNER.getAuthority())
+        && Objects.equals(order.getStore().getCreatedBy().getUserId(), user.getUserId());
+        boolean isUser = Objects.equals(user.getRole().getAuthority(), UserRoleEnum.USER.getAuthority())
+                && Objects.equals(order.getCreatedBy().getUserId(), user.getUserId());
+        return isAdmin || isOwner || isUser;
     }
 
 }

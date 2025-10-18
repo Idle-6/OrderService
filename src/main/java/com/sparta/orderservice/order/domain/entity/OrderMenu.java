@@ -37,6 +37,7 @@ public class OrderMenu {
     public static OrderMenu ofNew(Order order, MenuEntity menu, int qty) {
         OrderMenu orderMenu = new OrderMenu(menu, qty);
         orderMenu.setOrder(order);
+        order.addOrderMenu(orderMenu);
         return orderMenu;
     }
 

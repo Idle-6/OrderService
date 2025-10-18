@@ -2,8 +2,6 @@ package com.sparta.orderservice.order.presentation.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.querydsl.core.annotations.QueryProjection;
-import com.sparta.orderservice.order.domain.entity.Order;
-import com.sparta.orderservice.order.domain.entity.OrderMenu;
 import com.sparta.orderservice.order.domain.entity.OrderStatus;
 import com.sparta.orderservice.order.presentation.dto.request.ReqOrderMenuDtoV1;
 import lombok.AllArgsConstructor;
@@ -11,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,7 +38,7 @@ public class ResOrderDetailDtoV1 {
         this.orderStatus = orderStatus;
         this.storeName = storeName;
         this.storeDesc = storeDesc;
-        this.orderMenus = orderMenus;
+        this.orderMenus = (orderMenus != null) ? orderMenus : new ArrayList<>();
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }

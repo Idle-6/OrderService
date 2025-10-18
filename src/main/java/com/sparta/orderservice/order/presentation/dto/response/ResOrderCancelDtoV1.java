@@ -17,6 +17,4 @@ public class ResOrderCancelDtoV1 {
     private OrderStatus orderStatus;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
-
-    // 결제 취소 정보 응답 추가 예정
 }

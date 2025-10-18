@@ -164,11 +164,11 @@ public class OrderServiceV1Test {
     void getOrderPage() {
         SearchParam searchParam = new SearchParam();
         ResOrderDtoV1 response = new ResOrderDtoV1(UUID.randomUUID(), 15000, OrderStatus.COMPLETE, store.getName(), store.getDescription(), LocalDateTime.now());
-        when(orderRepository.findOrderPage(Mockito.any(SearchParam.class), Mockito.any())).thenReturn(new PageImpl<>(List.of(response)));
+        when(orderRepository.findOrderPage(Mockito.any(SearchParam.class), Mockito.any(), eq(user))).thenReturn(new PageImpl<>(List.of(response)));
 
-        orderServiceV1.getOrders(searchParam, Pageable.ofSize(5));
+        orderServiceV1.getOrders(searchParam, Pageable.ofSize(5), user);
 
-        verify(orderRepository, Mockito.times(1)).findOrderPage(Mockito.any(SearchParam.class), Mockito.any());
+        verify(orderRepository, Mockito.times(1)).findOrderPage(Mockito.any(SearchParam.class), Mockito.any(), eq(user));
 
     }
 
@@ -179,7 +179,7 @@ public class OrderServiceV1Test {
         ResOrderDetailDtoV1 response = new ResOrderDetailDtoV1(orderId, "배고파서 현기증 나요", 30000, OrderStatus.START, store.getName(), store.getDescription(), orderMenus, LocalDateTime.now(), LocalDateTime.now());
         when(orderRepository.findOrderDetailById(orderId)).thenReturn(Optional.of(response));
 
-        orderServiceV1.getOrderDetail(orderId);
+        orderServiceV1.getOrderDetail(orderId, user);
 
         verify(orderRepository, Mockito.times(1)).findOrderDetailById(Mockito.any());
     }

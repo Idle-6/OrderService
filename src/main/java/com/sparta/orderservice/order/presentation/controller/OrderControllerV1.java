@@ -29,8 +29,9 @@ public class OrderControllerV1 {
 
     // 주문 상세 조회
     @GetMapping("/{orderId}")
-    public ResponseEntity<ResOrderDetailDtoV1> getOrder(@PathVariable UUID orderId) {
-        ResOrderDetailDtoV1 response = orderService.getOrderDetail(orderId);
+    public ResponseEntity<ResOrderDetailDtoV1> getOrder(@PathVariable UUID orderId,
+                                                        @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        ResOrderDetailDtoV1 response = orderService.getOrderDetail(orderId, userDetails.getUser());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -38,10 +39,11 @@ public class OrderControllerV1 {
     @GetMapping
     public ResponseEntity<Page<ResOrderDtoV1>> getOrderList(@RequestParam(required = false) OrderStatus orderStatus,
                                                             @RequestParam(required = false) Integer totalPrice,
-                                                            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+                                                            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+                                                            @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
         SearchParam searchParam = new SearchParam(totalPrice, orderStatus);
-        Page<ResOrderDtoV1> response = orderService.getOrders(searchParam, pageable);
+        Page<ResOrderDtoV1> response = orderService.getOrders(searchParam, pageable, userDetails.getUser());
         return ResponseEntity.ok(response);
     }
 
