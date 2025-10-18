@@ -20,4 +20,6 @@ public interface CustomPaymentRepository {
     Page<ResPaymentSummaryDtoV1> findPaymentPageByUserId(Long userId, SearchParam searchParam, Pageable pageable);
 
     Optional<ResPaymentDtoV1> findPaymentById(UUID paymentId);
+  
+    Optional<ResPaymentDtoV1> findPaymentByOrderId(UUID orderId, Long userId);
 }

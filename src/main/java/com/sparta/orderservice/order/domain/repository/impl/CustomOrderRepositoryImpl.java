@@ -1,56 +1,64 @@
 package com.sparta.orderservice.order.domain.repository.impl;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.sparta.orderservice.order.domain.entity.Order;
-import com.sparta.orderservice.order.domain.entity.OrderMenu;
 import com.sparta.orderservice.order.domain.entity.QOrder;
 import com.sparta.orderservice.order.domain.repository.CustomOrderRepository;
 import com.sparta.orderservice.order.presentation.dto.SearchParam;
-import com.sparta.orderservice.order.presentation.dto.request.ReqOrderMenuDtoV1;
 import com.sparta.orderservice.order.presentation.dto.response.QResOrderDetailDtoV1;
 import com.sparta.orderservice.order.presentation.dto.response.QResOrderDtoV1;
 import com.sparta.orderservice.order.presentation.dto.response.ResOrderDetailDtoV1;
 import com.sparta.orderservice.order.presentation.dto.response.ResOrderDtoV1;
-import com.sparta.orderservice.store.domain.entity.QStore;
+import com.sparta.orderservice.store.domain.entity.Store;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.support.PageableExecutionUtils;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @RequiredArgsConstructor
 public class CustomOrderRepositoryImpl implements CustomOrderRepository {
 
     private final JPAQueryFactory query;
 
-    private static final String[] ALLOWED_SORT_PROPERTIES = {"totalPrice", "createdAt"};
+    private static final Set<String> ALLOWED_SORT_PROPERTIES = Set.of("totalPrice", "createdAt");
 
     QOrder qOrder = QOrder.order;
 
     @Override
     public Page<ResOrderDtoV1> findOrderPage(SearchParam searchParam, Pageable pageable) {
+        int pageSize = pageable.getPageSize();
+        List<Integer> allowedPageSizes = Arrays.asList(10, 30, 50);
+        if (!allowedPageSizes.contains(pageSize)) {
+            pageSize = 10;
+        }
+
+        Pageable adjustedPageable = PageRequest.of(pageable.getPageNumber(), pageSize, pageable.getSort());
+
         JPAQuery<ResOrderDtoV1> jpaQuery = query
                 .select(getOrderProjection())
                 .from(qOrder)
                 .join(qOrder.store)
                 .where(whereExpression(searchParam))
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize());
+                .offset(adjustedPageable.getOffset())
+                .limit(adjustedPageable.getPageSize());
 
         // 정렬 처리
-        if (pageable.getSort().isSorted()) {
-            for (Sort.Order order : pageable.getSort()) {
-                if (!List.of(ALLOWED_SORT_PROPERTIES).contains(order.getProperty())) continue;
-                PathBuilder<Order> entityPath = new PathBuilder<>(Order.class, "order");
-                jpaQuery.orderBy(new com.querydsl.core.types.OrderSpecifier(
-                        order.isAscending() ? com.querydsl.core.types.Order.ASC : com.querydsl.core.types.Order.DESC,
+        if (adjustedPageable.getSort().isSorted()) {
+            for (Sort.Order order : adjustedPageable.getSort()) {
+                if (!ALLOWED_SORT_PROPERTIES.contains(order.getProperty())) {
+                    continue;
+                }
+                PathBuilder<Store> entityPath = new PathBuilder<>(Store.class, "order");
+                jpaQuery.orderBy(new OrderSpecifier(
+                        order.isAscending() ? com.querydsl.core.types.Order.ASC : Order.DESC,
                         entityPath.get(order.getProperty())
                 ));
             }
@@ -67,11 +75,12 @@ public class CustomOrderRepositoryImpl implements CustomOrderRepository {
 
         List<ResOrderDtoV1> results = jpaQuery.fetch();
 
-        return PageableExecutionUtils.getPage(results, pageable, countQuery::fetchOne);
+        return PageableExecutionUtils.getPage(results, adjustedPageable, countQuery::fetchOne);
     }
 
     @Override
     public Optional<ResOrderDetailDtoV1> findOrderDetailById(UUID orderId) {
+
         ResOrderDetailDtoV1 result = query
                 .select(getOrderDetailProjection())
                 .from(qOrder)
@@ -84,6 +93,7 @@ public class CustomOrderRepositoryImpl implements CustomOrderRepository {
 
     @Override
     public Optional<ResOrderDetailDtoV1> findOrderDetailByUserId(Long userId) {
+
         ResOrderDetailDtoV1 result = query
                 .select(getOrderDetailProjection())
                 .from(qOrder)

@@ -2,6 +2,8 @@ package com.sparta.orderservice.order.application.service;
 
 import com.sparta.orderservice.menu.domain.entity.MenuEntity;
 import com.sparta.orderservice.menu.domain.repository.MenuRepository;
+import com.sparta.orderservice.menu.presentation.advice.error.MenuErrorCode;
+import com.sparta.orderservice.menu.presentation.advice.exception.MenuException;
 import com.sparta.orderservice.order.domain.entity.Order;
 import com.sparta.orderservice.order.domain.entity.OrderMenu;
 import com.sparta.orderservice.order.domain.entity.OrderStatus;
@@ -16,6 +18,14 @@ import com.sparta.orderservice.order.presentation.dto.response.ResOrderCancelDto
 import com.sparta.orderservice.order.presentation.dto.response.ResOrderDetailDtoV1;
 import com.sparta.orderservice.order.presentation.dto.response.ResOrderDtoV1;
 import com.sparta.orderservice.order.presentation.dto.response.ResOrderUpdateDtoV1;
+import com.sparta.orderservice.payment.application.PaymentServiceV1;
+import com.sparta.orderservice.payment.domain.entity.PaymentMethodEnum;
+import com.sparta.orderservice.payment.domain.repository.PaymentRepository;
+import com.sparta.orderservice.payment.presentation.advice.PaymentErrorCode;
+import com.sparta.orderservice.payment.presentation.advice.PaymentException;
+import com.sparta.orderservice.payment.presentation.advice.PaymentExceptionLogUtils;
+import com.sparta.orderservice.payment.presentation.dto.request.ReqPaymentDtoV1;
+import com.sparta.orderservice.payment.presentation.dto.response.ResPaymentDtoV1;
 import com.sparta.orderservice.store.domain.entity.Store;
 import com.sparta.orderservice.store.domain.repository.StoreRepository;
 import com.sparta.orderservice.store.presentation.advice.StoreErrorCode;
@@ -41,15 +51,19 @@ public class OrderServiceV1 {
     private final OrderRepository orderRepository;
     private final StoreRepository storeRepository;
     private final MenuRepository menuRepository;
-    private final UserRepository userRepository;
+    private final PaymentRepository paymentRepository;
+
+    private final PaymentServiceV1 paymentService;
 
     // 주문 생성
     @Transactional
-    public ResOrderDtoV1 createOrder(ReqOrderDtoV1 request) {
+    public ResOrderDtoV1 createOrder(ReqOrderDtoV1 request, User user) {
+        Long userId = user.getUserId();
+
         Store store = storeRepository.findById(request.getStoreId().getStoreId())
                 .orElseThrow(() -> new StoreException(
                         StoreErrorCode.STORE_NOT_FOUND,
-                        StoreExceptionLogUtils.getNotFoundMessage(request.getStoreId().getStoreId(), null)
+                        StoreExceptionLogUtils.getNotFoundMessage(request.getStoreId().getStoreId(), userId)
                 ));
 
         // 주문 생성 (totalPrice 초기값 0으로)
@@ -66,7 +80,10 @@ public class OrderServiceV1 {
         // 주문메뉴 테이블에 수량 추가 및 총 금액 계산
         for (ReqOrderMenuDtoV1 menuDto : request.getOrderMenus()) {
             MenuEntity menu = menuRepository.findById(menuDto.getMenuId())
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 메뉴입니다."));
+                    .orElseThrow(() -> new MenuException(
+                            MenuErrorCode.InvalidMenuData,
+                            MenuErrorCode.InvalidMenuData.getErrorMessage())
+                    );
 
             OrderMenu orderMenu = OrderMenu.ofNew(order, menu, menuDto.getOrderMenuQty());
             order.addOrderMenu(orderMenu);
@@ -77,6 +94,19 @@ public class OrderServiceV1 {
         order.updateTotalPrice(totalPrice);
 
         orderRepository.save(order);
+
+        // 결제 토큰 생성
+        String pgToken = UUID.randomUUID().toString().replace("-", "");
+
+        // 결제 요청
+        ReqPaymentDtoV1 paymentRequest = new ReqPaymentDtoV1(
+                order.getOrderId(),
+                order.getTotalPrice(),
+                PaymentMethodEnum.CARD,
+                pgToken
+        );
+
+        paymentService.completePayment(paymentRequest, user);
 
         return new ResOrderDtoV1(
                 order.getOrderId(),
@@ -132,7 +162,7 @@ public class OrderServiceV1 {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderException(
                         OrderErrorCode.ORDER_NOT_FOUND,
-                        OrderExceptionLogUtils.getNotFoundMessage(orderId, null)
+                        OrderExceptionLogUtils.getNotFoundMessage(orderId, userId)
                 ));
 
         if (!hasPermission(user, order)) {
@@ -142,7 +172,7 @@ public class OrderServiceV1 {
             );
         }
 
-        order.updateOrderStatus(orderStatus, null);
+        order.updateOrderStatus(orderStatus, userId);
         orderRepository.save(order);
 
         return new ResOrderUpdateDtoV1(
@@ -160,7 +190,13 @@ public class OrderServiceV1 {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderException(
                         OrderErrorCode.ORDER_NOT_FOUND,
-                        OrderExceptionLogUtils.getNotFoundMessage(orderId, null)
+                        OrderExceptionLogUtils.getNotFoundMessage(orderId, userId)
+                ));
+
+        ResPaymentDtoV1 payment = paymentRepository.findPaymentByOrderId(orderId, userId)
+                .orElseThrow(() -> new PaymentException(
+                        PaymentErrorCode.PAYMENT_NOT_FOUND,
+                        PaymentExceptionLogUtils.getNotFoundMessage(orderId, userId)
                 ));
 
         if (!hasPermission(user, order)) {
@@ -178,10 +214,11 @@ public class OrderServiceV1 {
             );
         }
 
-        order.cancelOrder(null);
+        order.cancelOrder(userId);
         orderRepository.save(order);
 
-        // TODO: 결제 취소 로직 추가
+        // 결제 취소
+        paymentService.cancelPayment(payment.getPaymentId(), user);
 
         return new ResOrderCancelDtoV1(
                 order.getOrderId(),

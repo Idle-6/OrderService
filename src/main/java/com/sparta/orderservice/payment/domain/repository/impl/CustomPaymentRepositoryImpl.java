@@ -169,20 +169,44 @@ public class CustomPaymentRepositoryImpl implements CustomPaymentRepository {
     @Override
     public Optional<ResPaymentDtoV1> findPaymentById(UUID paymentId) {
         ResPaymentDtoV1 result = query.select(
-                new QResPaymentDtoV1(
-                        qPayment.paymentId,
-                        qPayment.order.orderId,
-                        qPayment.amount,
-                        qPayment.method,
-                        qPayment.user.name,
-                        qPayment.status,
-                        qPayment.createdAt,
-                        qPayment.updatedAt,
-                        qPayment.deletedAt
+                        new QResPaymentDtoV1(
+                                qPayment.paymentId,
+                                qPayment.order.orderId,
+                                qPayment.amount,
+                                qPayment.method,
+                                qPayment.user.name,
+                                qPayment.status,
+                                qPayment.createdAt,
+                                qPayment.updatedAt,
+                                qPayment.deletedAt
 
-                ))
+                        ))
                 .from(qPayment)
                 .where(qPayment.paymentId.eq(paymentId))
+                .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+
+    @Override
+    public Optional<ResPaymentDtoV1> findPaymentByOrderId(UUID orderId, Long userId) {
+        ResPaymentDtoV1 result = query.select(
+                        new QResPaymentDtoV1(
+                                qPayment.paymentId,
+                                qPayment.order.orderId,
+                                qPayment.amount,
+                                qPayment.method,
+                                qPayment.user.name,
+                                qPayment.status,
+                                qPayment.createdAt,
+                                qPayment.updatedAt,
+                                qPayment.deletedAt
+
+                        ))
+                .from(qPayment)
+                .leftJoin(qOrder).on(qPayment.order.eq(qOrder))
+                .leftJoin(qUser).on(qPayment.user.eq(qUser))
+                .where(qUser.userId.eq(userId), qPayment.order.orderId.eq(orderId))
                 .fetchOne();
 
         return Optional.ofNullable(result);

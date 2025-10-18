@@ -17,9 +17,11 @@ import java.util.UUID;
 public class ResReviewDtoV1 {
     private UUID reviewId;
     private UUID orderId;
-    private String title;
+    private String content;
     private int rating;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime updatedAt;
 }
