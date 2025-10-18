@@ -64,7 +64,7 @@ class PaymentRepositoryTest {
     @Test
     @DisplayName("결제 리스트 조회")
     void findPaymentPageByUserId() {
-        Page<ResPaymentSummaryDtoV1> response = paymentRepository.findPaymentPageByUserId(user.getUserId(), Pageable.ofSize(5));
+        Page<ResPaymentSummaryDtoV1> response = paymentRepository.findPaymentPageByUserId(user.getUserId(), null, Pageable.ofSize(5));
 
         assertNotNull(response.getContent());
 

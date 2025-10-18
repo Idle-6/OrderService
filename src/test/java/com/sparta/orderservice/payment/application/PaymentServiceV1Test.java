@@ -81,11 +81,11 @@ class PaymentServiceV1Test {
     @DisplayName("결제 리스트 조회")
     void getPaymentPage() {
         ResPaymentSummaryDtoV1 response = new ResPaymentSummaryDtoV1(UUID.randomUUID(), 100000, PaymentStatusEnum.PAID, LocalDateTime.now());
-        when(paymentRepository.findPaymentPageByUserId(Mockito.anyLong(), Mockito.any())).thenReturn(new PageImpl<>(List.of(response)));
+        when(paymentRepository.findPaymentPageByUserId(Mockito.anyLong(), Mockito.any(), Mockito.any())).thenReturn(new PageImpl<>(List.of(response)));
 
-        paymentService.getPaymentPage(Pageable.ofSize(5), user.getUserId());
+        paymentService.getPaymentPage(Pageable.ofSize(5), null, user.getUserId());
 
-        verify(paymentRepository, Mockito.times(1)).findPaymentPageByUserId(Mockito.anyLong(), Mockito.any());
+        verify(paymentRepository, Mockito.times(1)).findPaymentPageByUserId(Mockito.anyLong(), Mockito.any(), Mockito.any());
     }
 
     @Test

@@ -2,9 +2,10 @@ package com.sparta.orderservice.payment.presentation.controller;
 
 import com.sparta.orderservice.global.infrastructure.security.UserDetailsImpl;
 import com.sparta.orderservice.payment.application.PaymentServiceV1;
+import com.sparta.orderservice.payment.presentation.dto.SearchParam;
 import com.sparta.orderservice.payment.presentation.dto.request.ReqPaymentDtoV1;
 import com.sparta.orderservice.payment.presentation.dto.response.ResPaymentDtoV1;
-import com.sparta.orderservice.payment.presentation.dto.response.ResPaymentSummaryDtoV1;
+import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -33,19 +34,28 @@ public class PaymentControllerV1 {
     }
 
     @GetMapping
-    public ResponseEntity<Page<ResPaymentSummaryDtoV1>> getPaymentList(
-            @PageableDefault(
-                    size = 10,
-                    sort = "createdAt",
-                    direction = Sort.Direction.DESC
-            )
+    public ResponseEntity<Page<?>> getPaymentList(
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC)
             Pageable pageable,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) UUID storeId,
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        Page<ResPaymentSummaryDtoV1> response = paymentService.getPaymentPage(pageable, userDetails.getUser().getUserId());
+        Page<?> response;
+        SearchParam searchParam = new SearchParam(search);
+
+        if (storeId != null) {
+            response = paymentService.getPaymentPageForOwner(userDetails.getUser() ,storeId, searchParam, pageable);
+        } else if (userDetails.getUser().getRole() == UserRoleEnum.ADMIN) {
+            response = paymentService.getPaymentPageForManager(searchParam, pageable);
+        } else {
+            Long userId = userDetails.getUser().getUserId();
+            response = paymentService.getPaymentPage(pageable, searchParam, userId);
+        }
 
         return ResponseEntity.ok(response);
     }
+
 
     @GetMapping("/{paymentId}")
     public ResponseEntity<ResPaymentDtoV1> getPayment(@PathVariable(name = "paymentId") UUID paymentId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
