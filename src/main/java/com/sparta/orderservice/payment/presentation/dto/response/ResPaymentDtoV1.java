@@ -44,5 +44,3 @@ public class ResPaymentDtoV1 {
         this.updatedAt = updatedAt;
     }
 }
-
-
