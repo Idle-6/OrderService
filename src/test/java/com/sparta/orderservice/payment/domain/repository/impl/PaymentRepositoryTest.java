@@ -79,8 +79,8 @@ class PaymentRepositoryTest {
 
     @Test
     @DisplayName("결제 상세 조회")
-    void findPaymentByUserId() {
-        Optional<ResPaymentDtoV1> response = paymentRepository.findPaymentByUserId(payment.getPaymentId(), user.getUserId());
+    void findPaymentById() {
+        Optional<ResPaymentDtoV1> response = paymentRepository.findPaymentById(payment.getPaymentId());
 
         assertTrue(response.isPresent());
 

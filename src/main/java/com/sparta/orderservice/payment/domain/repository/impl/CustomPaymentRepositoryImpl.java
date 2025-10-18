@@ -66,7 +66,7 @@ public class CustomPaymentRepositoryImpl implements CustomPaymentRepository {
     }
 
     @Override
-    public Optional<ResPaymentDtoV1> findPaymentByUserId(UUID paymentId, Long userId) {
+    public Optional<ResPaymentDtoV1> findPaymentById(UUID paymentId) {
         ResPaymentDtoV1 result = query.select(
                 new QResPaymentDtoV1(
                         qPayment.paymentId,
@@ -81,9 +81,7 @@ public class CustomPaymentRepositoryImpl implements CustomPaymentRepository {
 
                 ))
                 .from(qPayment)
-                .leftJoin(qOrder).on(qPayment.order.eq(qOrder))
-                .leftJoin(qUser).on(qPayment.user.eq(qUser))
-                .where(qUser.userId.eq(userId), qPayment.paymentId.eq(paymentId))
+                .where(qPayment.paymentId.eq(paymentId))
                 .fetchOne();
 
         return Optional.ofNullable(result);

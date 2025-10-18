@@ -55,7 +55,7 @@ public class PaymentServiceV1 {
 
     @Transactional(readOnly = true)
     public ResPaymentDtoV1 getPayment(UUID paymentId, Long userId) {
-        return paymentRepository.findPaymentByUserId(paymentId, userId)
+        return paymentRepository.findPaymentById(paymentId)
                 .orElseThrow(() -> new PaymentException(
                         PaymentErrorCode.PAYMENT_NOT_FOUND,
                         PaymentExceptionLogUtils.getNotFoundMessage(paymentId, userId)
@@ -104,6 +104,9 @@ public class PaymentServiceV1 {
                     PaymentExceptionLogUtils.getCancelMessage(paymentId, userId)
             );
         }
+
+        // 외부 결제 시스템에 취소 요청
+//        pgPaymentClient.cancelPayment(payment.getTransactionId(), payment.getAmount());
 
         payment.cancel(userId);
     }
