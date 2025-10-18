@@ -1,24 +1,45 @@
 package com.sparta.orderservice.menu.infrastructure.api.gemini.domain.repository;
 
-import com.sparta.orderservice.global.infrastructure.auditing.JpaAuditingConfig;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.sparta.orderservice.auth.infrastructure.util.JwtProperties;
+import com.sparta.orderservice.auth.infrastructure.util.JwtUtil;
+import com.sparta.orderservice.global.infrastructure.config.SecurityConfig;
+import com.sparta.orderservice.global.infrastructure.config.auditing.JpaAuditingConfig;
+import com.sparta.orderservice.global.infrastructure.security.UserDetailsServiceImpl;
 import com.sparta.orderservice.menu.infrastructure.api.gemini.domain.entity.AiLogEntity;
+import com.sparta.orderservice.payment.domain.repository.impl.CustomPaymentRepositoryImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@DataJpaTest
+@DataJpaTest(
+        excludeFilters = {
+                @ComponentScan.Filter(
+                        type = FilterType.ASSIGNABLE_TYPE,
+                        classes = SecurityConfig.class
+                )
+        },
+        excludeAutoConfiguration = CustomPaymentRepositoryImpl.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(JpaAuditingConfig.class)
+@Import({JwtUtil.class, JwtProperties.class, UserDetailsServiceImpl.class, JpaAuditingConfig.class})
+//@DataJpaTest
+//@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+//@Import(JpaAuditingConfig.class)
 @DisplayName("AI 레포지토리")
 class AiRepositoryTest {
+
+    @MockitoBean
+    private JPAQueryFactory jpaQueryFactory;
 
     @Autowired
     private AiRepository aiRepository;

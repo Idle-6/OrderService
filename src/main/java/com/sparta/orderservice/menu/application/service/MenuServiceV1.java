@@ -35,12 +35,14 @@ public class MenuServiceV1 {
 
     public ResMenuCreateDtoV1 createMenu(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
+            UUID storeId,
             ReqMenuCreateDtoV1 requestDto) {
 
         MenuEntity menuEntity = MenuEntity.builder()
                 .name(requestDto.getName())
                 .price(requestDto.getPrice())
                 .isPublic(requestDto.isPublic())
+                .storeId(storeId)
                 .build();
 
         try {
@@ -101,10 +103,10 @@ public class MenuServiceV1 {
                 String auth = authority.getAuthority();
 
                 if (auth.equals(UserRoleEnum.ADMIN.getAuthority()) || auth.equals(UserRoleEnum.OWNER.getAuthority())) {
-                    menuList = menuRepository.findAllByStoreIdAndNameLike(storeId, search, pageable);
+                    menuList = menuRepository.findAllByStoreIdAndDeletedAtNullAndNameLike(storeId, search, pageable);
                     break;
                 } else if (auth.equals(UserRoleEnum.USER.getAuthority())) {
-                    menuList = menuRepository.findAllByStoreIdAndIsPublicTrueAndNameLike(storeId, search, pageable);
+                    menuList = menuRepository.findAllByStoreIdAndIsPublicIsTrueAndDeletedAtNullAndNameLike(storeId, search, pageable);
                     break;
                 }
             }
@@ -161,6 +163,7 @@ public class MenuServiceV1 {
         }
     }
 
+    @Transactional
     public void deleteMenu(UUID menuId) {
 
         try {
@@ -168,7 +171,9 @@ public class MenuServiceV1 {
                     MenuException.MenuNotFoundOnDeleteMenu(menuId)
             );
 
-            menuRepository.deleteById(menuId);
+            menuEntity.delete();
+
+//            menuRepository.deleteById(menuId);
 
         } catch (DataAccessException e) {
             throw MenuException.DataAccessExceptionOnDeleteMenu(e);
