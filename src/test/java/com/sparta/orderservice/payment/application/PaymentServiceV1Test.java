@@ -81,11 +81,11 @@ class PaymentServiceV1Test {
     @DisplayName("결제 리스트 조회")
     void getPaymentPage() {
         ResPaymentSummaryDtoV1 response = new ResPaymentSummaryDtoV1(UUID.randomUUID(), 100000, PaymentStatusEnum.PAID, LocalDateTime.now());
-        when(paymentRepository.findPaymentPageByUserId(Mockito.anyLong(), Mockito.any())).thenReturn(new PageImpl<>(List.of(response)));
+        when(paymentRepository.findPaymentPageByUserId(Mockito.anyLong(), Mockito.any(), Mockito.any())).thenReturn(new PageImpl<>(List.of(response)));
 
-        paymentService.getPaymentPage(Pageable.ofSize(5), user.getUserId());
+        paymentService.getPaymentPage(Pageable.ofSize(5), null, user.getUserId());
 
-        verify(paymentRepository, Mockito.times(1)).findPaymentPageByUserId(Mockito.anyLong(), Mockito.any());
+        verify(paymentRepository, Mockito.times(1)).findPaymentPageByUserId(Mockito.anyLong(), Mockito.any(), Mockito.any());
     }
 
     @Test
@@ -93,17 +93,17 @@ class PaymentServiceV1Test {
     void getPayment() {
         UUID paymentId = UUID.randomUUID();
         ResPaymentDtoV1 response = new ResPaymentDtoV1(paymentId, order.getOrderId(), 100000, PaymentMethodEnum.MOBILE_PAY, user.getName(), PaymentStatusEnum.PAID, LocalDateTime.now(), null, null);
-        when(paymentRepository.findPaymentByUserId(Mockito.any(), Mockito.anyLong())).thenReturn(Optional.of(response));
+        when(paymentRepository.findPaymentById(Mockito.any())).thenReturn(Optional.of(response));
 
         paymentService.getPayment(paymentId, user.getUserId());
 
-        verify(paymentRepository, Mockito.times(1)).findPaymentByUserId(Mockito.any(), Mockito.anyLong());
+        verify(paymentRepository, Mockito.times(1)).findPaymentById(Mockito.any());
     }
 
     @Test
     @DisplayName("결제 상세 조회 - 존재하지 않음")
     void getPayment_not_found() {
-        when(paymentRepository.findPaymentByUserId(Mockito.any(), Mockito.anyLong())).thenReturn(Optional.empty());
+        when(paymentRepository.findPaymentById(Mockito.any())).thenReturn(Optional.empty());
 
         assertThrows(PaymentException.class, () -> paymentService.getPayment(UUID.randomUUID(), user.getUserId()));
     }

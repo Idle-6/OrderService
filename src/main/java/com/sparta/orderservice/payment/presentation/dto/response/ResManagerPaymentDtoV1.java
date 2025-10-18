@@ -11,36 +11,36 @@ import java.util.UUID;
 
 @Getter
 @NoArgsConstructor
-public class ResPaymentDtoV1 {
+public class ResManagerPaymentDtoV1 {
 
     private UUID paymentId;
 
-    private UUID orderId;
-
     private Integer amount;
-
-    private PaymentMethodEnum payType; // 결제 방식 (카드, 계좌이체 등)
-
-    private String userName;
 
     private PaymentStatusEnum status;
 
+    private PaymentMethodEnum payType;
+
     private LocalDateTime paidAt;
+
+    private String userName;
+
+    private String storeName;
+
+    private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
 
-    private LocalDateTime canceledAt;
-
     @QueryProjection
-    public ResPaymentDtoV1(UUID paymentId, UUID orderId, Integer amount, PaymentMethodEnum payType, String userName, PaymentStatusEnum status, LocalDateTime paidAt, LocalDateTime canceledAt, LocalDateTime updatedAt) {
+    public ResManagerPaymentDtoV1(UUID paymentId, Integer amount, PaymentStatusEnum status, LocalDateTime paidAt, PaymentMethodEnum payType, String userName, String storeName, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.paymentId = paymentId;
-        this.orderId = orderId;
         this.amount = amount;
-        this.payType = payType;
-        this.userName = userName;
         this.status = status;
+        this.payType = payType;
         this.paidAt = paidAt;
-        this.canceledAt = canceledAt;
+        this.userName = userName;
+        this.storeName = storeName;
+        this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
 }

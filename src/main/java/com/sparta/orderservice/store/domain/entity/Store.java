@@ -97,7 +97,7 @@ public class Store {
         if (request.getContact() != null) this.contact = request.getContact();
         if (request.getAddress() != null) this.address = request.getAddress();
         if (request.getDescription()!= null) this.description= request.getDescription();
-        this.isPublic = request.isPublic();
+        if (request.getIsPublic() != null) this.isPublic = request.getIsPublic();
         this.updatedBy = updatedBy;
     }
 

@@ -9,6 +9,7 @@ import com.sparta.orderservice.order.presentation.dto.SearchParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,7 +38,7 @@ public class OrderControllerV1 {
     @GetMapping
     public ResponseEntity<Page<ResOrderDtoV1>> getOrderList(@RequestParam(required = false) OrderStatus orderStatus,
                                                             @RequestParam(required = false) Integer totalPrice,
-                                                            @PageableDefault(size = 10) Pageable pageable) {
+                                                            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
         SearchParam searchParam = new SearchParam(totalPrice, orderStatus);
         Page<ResOrderDtoV1> response = orderService.getOrders(searchParam, pageable);
@@ -46,8 +47,9 @@ public class OrderControllerV1 {
 
     // 주문 생성
     @PostMapping
-    public ResponseEntity<ResOrderDtoV1> createOrder(@RequestBody ReqOrderDtoV1 request) {
-        ResOrderDtoV1 response = orderService.createOrder(request);
+    public ResponseEntity<ResOrderDtoV1> createOrder(@RequestBody ReqOrderDtoV1 request,
+                                                     @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        ResOrderDtoV1 response = orderService.createOrder(request, userDetails.getUser());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

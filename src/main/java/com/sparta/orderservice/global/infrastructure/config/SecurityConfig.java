@@ -78,6 +78,8 @@ public class SecurityConfig {
                         .requestMatchers("/").permitAll() // 메인 페이지 요청 허가
                         .requestMatchers("/v1/auth/**").permitAll() // '/v1/auth/'로 시작하는 요청 모두 접근 허가
                         .requestMatchers("/v1/users/sign-up").permitAll() // 회원가입 요청 접근 허가
+                        .requestMatchers(HttpMethod.GET, "/v1/stores/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/v1/categorys").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/categorys/**").hasAuthority(UserRoleEnum.ADMIN.getAuthority())
                         .requestMatchers(HttpMethod.PATCH, "/v1/categorys/**").hasAuthority(UserRoleEnum.ADMIN.getAuthority())
                         .requestMatchers(HttpMethod.DELETE, "/v1/categorys/**").hasAuthority(UserRoleEnum.ADMIN.getAuthority())

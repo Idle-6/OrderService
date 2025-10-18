@@ -15,7 +15,6 @@ import com.sparta.orderservice.store.presentation.dto.response.QResStoreDetailDt
 import com.sparta.orderservice.store.presentation.dto.response.QResStoreDtoV1;
 import com.sparta.orderservice.store.presentation.dto.response.ResStoreDetailDtoV1;
 import com.sparta.orderservice.store.presentation.dto.response.ResStoreDtoV1;
-import com.sparta.orderservice.user.domain.entity.QUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -36,7 +35,6 @@ public class CustomStoreRepositoryImpl implements CustomStoreRepository {
 
     QStore qStore = QStore.store;
     QCategory qCategory = QCategory.category;
-    QUser qUser = QUser.user;
 
     @Override
     public Page<ResStoreDtoV1> findStorePage(SearchParam searchParam, Pageable pageable, boolean isAdmin) {
@@ -51,7 +49,7 @@ public class CustomStoreRepositoryImpl implements CustomStoreRepository {
 
         JPAQuery<ResStoreDtoV1> jpaQuery = query.select(getStoreProjection())
                 .from(qStore)
-                .join(qCategory).on(qStore.category.categoryId.eq(qCategory.categoryId))
+                .join(qCategory).on(qStore.category.eq(qCategory))
                 .where(whereExpression(searchParam), permissionCondition(isAdmin))
                 .offset(adjustedPageable.getOffset())
                 .limit(adjustedPageable.getPageSize());
@@ -86,7 +84,7 @@ public class CustomStoreRepositoryImpl implements CustomStoreRepository {
 
         ResStoreDetailDtoV1 response = query.select(getStoreDetailProjection())
                 .from(qStore)
-                .join(qCategory).on(qStore.category.categoryId.eq(qCategory.categoryId))
+                .join(qCategory).on(qStore.category.eq(qCategory))
                 .where(qStore.storeId.eq(storeId), qStore.isPublic.isTrue())
                 .fetchOne();
 
@@ -98,7 +96,7 @@ public class CustomStoreRepositoryImpl implements CustomStoreRepository {
 
         ResStoreDetailDtoV1 response = query.select(getStoreDetailProjection())
                 .from(qStore)
-                .join(qCategory).on(qStore.category.categoryId.eq(qCategory.categoryId))
+                .join(qCategory).on(qStore.category.eq(qCategory))
                 .where(qStore.createdBy.userId.eq(userId))
                 .fetchOne();
         return Optional.ofNullable(response);
@@ -109,8 +107,7 @@ public class CustomStoreRepositoryImpl implements CustomStoreRepository {
 
         Long exist = query.select(qStore.count())
                 .from(qStore)
-                .join(qUser).on(qStore.createdBy.eq(qUser))
-                .where(qUser.userId.eq(userId))
+                .where(qStore.createdBy.userId.eq(userId))
                 .fetchOne();
         return exist != null && exist  > 0;
     }
@@ -123,6 +120,7 @@ public class CustomStoreRepositoryImpl implements CustomStoreRepository {
                     qStore.name.contains(searchParam.getTerm())
                             .or(qStore.address.contains(searchParam.getTerm()))
                             .or(qStore.description.contains(searchParam.getTerm()))
+                            .or(qCategory.name.contains(searchParam.getTerm()))
             );
         }
 
