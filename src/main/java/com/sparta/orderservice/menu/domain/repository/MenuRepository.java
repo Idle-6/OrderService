@@ -15,4 +15,6 @@ public interface MenuRepository extends JpaRepository<MenuEntity, UUID> {
     Page<MenuEntity> findAllByStoreIdAndDeletedAtNullAndNameLike(UUID storeId, String search, Pageable pageable);
 
     Page<MenuEntity> findAllByStoreIdAndIsPublicIsTrueAndDeletedAtNullAndNameLike(UUID storeId, String search, Pageable pageable);
+
+    Optional<MenuEntity> findByIdAndDeletedAtNull(UUID menuId);
 }

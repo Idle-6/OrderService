@@ -34,7 +34,7 @@ public class MenuServiceV1 {
     private final GeminiClient geminiClient;
 
     public ResMenuCreateDtoV1 createMenu(
-            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            UserDetailsImpl userDetails,
             UUID storeId,
             ReqMenuCreateDtoV1 requestDto) {
 
@@ -150,8 +150,8 @@ public class MenuServiceV1 {
     public void updateMenu(UUID menuId, ReqMenuUpdateDtoV1 requestDto) {
 
         try {
-            MenuEntity menuEntity = menuRepository.findById(menuId).orElseThrow(() ->
-                    MenuException.MenuNotFoundOnUpdateMenu(menuId)
+            MenuEntity menuEntity = menuRepository.findByIdAndDeletedAtNull(menuId).orElseThrow(() ->
+                MenuException.MenuNotFoundOnUpdateMenu(menuId)
             );
             menuEntity.setName(requestDto.getName());
             menuEntity.setDescription(requestDto.getDescription());
