@@ -27,13 +27,28 @@ public class GeminiClient {
 
     public ResGeminiDto callApi(@AuthenticationPrincipal UserDetailsImpl userDetails, String prompt) {
 
+        String systemInstruction = "상품의 설명을 50자 이내로 하나만 추천해주세요. 상품 설명만 응답하세요";
+
         try {
             Map<String, Object> requestBody = Map.of(
+                    "system_instruction",
+                            Map.of("parts", new Object[] {
+                                    Map.of("text", systemInstruction)
+                            })
+                    ,
                     "contents", new Object[] {
                             Map.of("parts", new Object[] {
                                     Map.of("text", prompt)
                             })
-                    }
+                    },
+                    "generationConfig", Map.of(
+                            "temperature", 1.0,
+                            "topP", 0.8,
+                            "topK", 10,
+                            "thinkingConfig", Map.of(
+                                    "thinkingBudget", 0
+                            )
+                    )
             );
 
             ResGeminiDto res = restClient.post()
