@@ -56,6 +56,7 @@ public class AuthServiceV1 {
     private long RT_ROTATE_TIME;
 
 
+    @Transactional
     public ResReissueDtoV1 reissue(String refreshToken, HttpServletResponse response) {
         if (refreshToken == null || refreshToken.isBlank())
             throw new AuthException(AuthErrorCode.AUTH_NO_REFRESH_TOKEN);
