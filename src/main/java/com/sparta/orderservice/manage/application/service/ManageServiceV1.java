@@ -302,6 +302,15 @@ public class ManageServiceV1 {
         }
     }
 
+    private orderMenuDtoV1 toOrderMenuDto(OrderMenu om) {
+        return orderMenuDtoV1.builder()
+                .menuId(om.getMenu() != null ? om.getMenu().getId().toString() : null)
+                .menu(om.getMenu() != null ? om.getMenu().getName() : null)
+                .amount(om.getOrderMenuQty())
+                .price(om.getMenu() != null ? om.getMenu().getPrice() : 0)
+                .build();
+    }
+
     /* 카테고리 리스트 조회 */
     @Transactional(readOnly = true)
     public List<ResCategoryDetailDtoV1> getCategoryList() {
@@ -320,14 +329,5 @@ public class ManageServiceV1 {
         }
 
         return resCategoryDtoV1List;
-    }
-
-    private orderMenuDtoV1 toOrderMenuDto(OrderMenu om) {
-        return orderMenuDtoV1.builder()
-                .menuId(om.getMenu() != null ? om.getMenu().getId().toString() : null)
-                .menu(om.getMenu() != null ? om.getMenu().getName() : null)
-                .amount(om.getOrderMenuQty())
-                .price(om.getMenu() != null ? om.getMenu().getPrice() : 0)
-                .build();
     }
 }
