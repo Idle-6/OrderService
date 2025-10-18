@@ -1,0 +1,63 @@
+package com.sparta.orderservice.store.domain.repository;
+
+import com.sparta.orderservice.store.domain.entity.Store;
+import com.sparta.orderservice.store.presentation.dto.SearchParam;
+import com.sparta.orderservice.store.presentation.dto.response.ResStoreDetailDtoV1;
+import com.sparta.orderservice.store.presentation.dto.response.ResStoreDtoV1;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.util.Optional;
+import java.util.UUID;
+
+/**
+ * {@code Store} 엔티티에 대한 커스텀 조회 기능을 제공하는 Repository 인터페이스입니다.
+ * <p>
+ * 기본 JPA Repository로 처리하기 어려운 복합 검색, 동적 조건 조회 등을
+ * QueryDSL을 사용해 구현하기 위한 인터페이스입니다.
+ * </p>
+ */
+public interface CustomStoreRepository {
+
+    /**
+     * 검색 조건과 페이지 정보를 기반으로 가게 목록을 동적으로 조회합니다.
+     * 관리자인 경우 모든 가게를, 일반 사용자는 자신의 가게만 조회할 수 있습니다.
+     *
+     * @param searchParam 검색 조건 객체 (카테고리, 이름, 주소 등 포함)
+     * @param pageable 페이지네이션 정보 (페이지 번호, 크기, 정렬 기준)
+     * @param isAdmin 관리자 여부 (true일 경우 전체 가게 조회 가능)
+     * @return {@link Page} 형태의 가게 목록 결과
+     */
+    Page<ResStoreDtoV1> findStorePage(SearchParam searchParam, Pageable pageable, boolean isAdmin);
+
+    /**
+     * 가게의 고유 ID(UUID)를 기준으로 상세 정보를 조회합니다.
+     *
+     * @param storeId 조회할 가게의 고유 식별자(UUID)
+     * @return 해당 가게의 상세 정보 DTO,
+     *         존재하지 않을 경우 {@link Optional#empty()} 반환
+     */
+    Optional<ResStoreDetailDtoV1> findStoreDetailById(UUID storeId);
+
+    /**
+     * 사용자 ID를 기준으로
+     * 해당 사용자가 등록한 가게의 상세 정보를 조회합니다.
+     * 가게 주인 용
+     *
+     * @param userId 사용자 고유 식별자(Long)
+     * @return 사용자가 등록한 가게의 상세 정보 DTO,
+     *         존재하지 않을 경우 {@link Optional#empty()} 반환
+     */
+    Optional<ResStoreDetailDtoV1> findStoreDetailByUserId(Long userId);
+
+    /**
+     * 특정 사용자 ID를 기반으로 해당 사용자가 등록한 가게가 존재하는지 확인합니다.
+     *
+     * <p>이 메서드는 주어진 {@code userId}를 통해 데이터베이스에서
+     * 해당 사용자가 소유한 {@link Store} 엔티티가 존재하는지 여부를 확인합니다.</p>
+     *
+     * @param userId 확인할 사용자의 고유 식별자
+     * @return 사용자가 등록한 가게가 존재하면 {@code true}, 존재하지 않으면 {@code false}
+     */
+    boolean existsStoreByUserId(Long userId);
+}
