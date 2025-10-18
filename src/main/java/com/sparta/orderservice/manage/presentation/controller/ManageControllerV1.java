@@ -1,5 +1,6 @@
 package com.sparta.orderservice.manage.presentation.controller;
 
+import com.sparta.orderservice.manage.presentation.dto.response.ResCategoryDetailDtoV1;
 import com.sparta.orderservice.manage.application.service.ManageServiceV1;
 import com.sparta.orderservice.manage.presentation.dto.response.*;
 import lombok.RequiredArgsConstructor;
@@ -122,6 +123,14 @@ public class ManageControllerV1 {
     ){
         ResOrderDetailDtoV1 orderDetail = manageService.getOrder(orderId);
         return ResponseEntity.ok(orderDetail);
+    }
+
+    /* 카테고리 리스트 조회 */
+    @GetMapping("/categorys")
+    public ResponseEntity<List<ResCategoryDetailDtoV1>> getCategoryList() {
+        List<ResCategoryDetailDtoV1> categoryList = manageService.getCategoryList();
+
+        return ResponseEntity.ok(categoryList);
     }
 }
 

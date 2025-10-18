@@ -37,7 +37,7 @@ public class CategoryServiceV1 {
     @Transactional(readOnly = true)
     public List<ResCategoryDtoV1> getCategoryList() {
 
-        List<Category> categoryList = categoryRepository.findAll();
+        List<Category> categoryList = categoryRepository.findAllByDeletedAtIsNull();
         List<ResCategoryDtoV1> resCategoryDtoV1List = new ArrayList<>();
 
         for(Category category : categoryList) {
@@ -73,6 +73,14 @@ public class CategoryServiceV1 {
     }
 
     public void deleteCategory(UUID categoryId, Long userId) {
+
+        if(categoryRepository.existsStore(categoryId)) {
+            throw new CategoryException(
+                CategoryErrorCode.CATEGORY_DELETE_FORBIDDEN,
+                CategoryExceptionLogUtils.getDeleteMessage(categoryId, userId)
+            );
+        }
+
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new CategoryException(
                         CategoryErrorCode.CATEGORY_NOT_FOUND,

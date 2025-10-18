@@ -2,16 +2,26 @@ package com.sparta.orderservice.payment.application;
 
 import com.sparta.orderservice.order.domain.entity.Order;
 import com.sparta.orderservice.order.domain.repository.OrderRepository;
+import com.sparta.orderservice.order.presentation.advice.OrderErrorCode;
+import com.sparta.orderservice.order.presentation.advice.OrderException;
 import com.sparta.orderservice.payment.domain.entity.Payment;
 import com.sparta.orderservice.payment.domain.entity.PaymentStatusEnum;
 import com.sparta.orderservice.payment.domain.repository.PaymentRepository;
 import com.sparta.orderservice.payment.presentation.advice.PaymentErrorCode;
 import com.sparta.orderservice.payment.presentation.advice.PaymentException;
 import com.sparta.orderservice.payment.presentation.advice.PaymentExceptionLogUtils;
+import com.sparta.orderservice.payment.presentation.dto.SearchParam;
 import com.sparta.orderservice.payment.presentation.dto.request.ReqPaymentDtoV1;
 import com.sparta.orderservice.payment.presentation.dto.request.ReqPaymentUpdateDtoV1;
+import com.sparta.orderservice.payment.presentation.dto.response.ResManagerPaymentDtoV1;
 import com.sparta.orderservice.payment.presentation.dto.response.ResPaymentDtoV1;
 import com.sparta.orderservice.payment.presentation.dto.response.ResPaymentSummaryDtoV1;
+import com.sparta.orderservice.payment.presentation.dto.response.ResStorePaymentDtoV1;
+import com.sparta.orderservice.store.domain.entity.Store;
+import com.sparta.orderservice.store.domain.repository.StoreRepository;
+import com.sparta.orderservice.store.presentation.advice.StoreErrorCode;
+import com.sparta.orderservice.store.presentation.advice.StoreException;
+import com.sparta.orderservice.store.presentation.advice.StoreExceptionLogUtils;
 import com.sparta.orderservice.user.domain.entity.User;
 import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
 import lombok.RequiredArgsConstructor;
@@ -30,9 +40,10 @@ public class PaymentServiceV1 {
 
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
+    private final StoreRepository storeRepository;
 
     public ResPaymentDtoV1 completePayment(ReqPaymentDtoV1 request, User user) {
-        Order order = orderRepository.findById(request.getOrderId()).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다."));
+        Order order = orderRepository.findById(request.getOrderId()).orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
         Payment payment = Payment.ofNewPayment(
                 request.getPayType(),
@@ -49,18 +60,37 @@ public class PaymentServiceV1 {
     }
 
     @Transactional(readOnly = true)
-    public Page<ResPaymentSummaryDtoV1> getPaymentPage(Pageable pageable, Long userId) {
-        return paymentRepository.findPaymentPageByUserId(userId, pageable);
+    public Page<ResPaymentSummaryDtoV1> getPaymentPage(Pageable pageable, SearchParam searchParam, Long userId) {
+        return paymentRepository.findPaymentPageByUserId(userId, searchParam, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ResManagerPaymentDtoV1> getPaymentPageForManager(SearchParam searchParam, Pageable pageable) {
+        return paymentRepository.findPaymentPage(searchParam, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ResStorePaymentDtoV1> getPaymentPageForOwner(User user, UUID storeId, SearchParam searchParam, Pageable pageable) {
+
+        Store store = storeRepository.findById(storeId).orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND, StoreExceptionLogUtils.getNotFoundMessage(storeId, user.getUserId())));
+
+        if(store.getCreatedBy() != user) {
+            throw new PaymentException(PaymentErrorCode.PAYMENT_VIEW_FORBIDDEN, PaymentExceptionLogUtils.getViewForbiddenMessage(storeId, user.getUserId()));
+        }
+
+        return paymentRepository.findPaymentPageByStoreId(storeId, searchParam, pageable);
     }
 
     @Transactional(readOnly = true)
     public ResPaymentDtoV1 getPayment(UUID paymentId, Long userId) {
-        return paymentRepository.findPaymentByUserId(paymentId, userId)
+        return paymentRepository.findPaymentById(paymentId)
                 .orElseThrow(() -> new PaymentException(
                         PaymentErrorCode.PAYMENT_NOT_FOUND,
                         PaymentExceptionLogUtils.getNotFoundMessage(paymentId, userId)
                 ));
     }
+
+
 
     public void updatePaymentStatus(UUID paymentId, ReqPaymentUpdateDtoV1 request, User user) {
 
@@ -104,6 +134,9 @@ public class PaymentServiceV1 {
                     PaymentExceptionLogUtils.getCancelMessage(paymentId, userId)
             );
         }
+
+        // 외부 결제 시스템에 취소 요청
+//        pgPaymentClient.cancelPayment(payment.getTransactionId(), payment.getAmount());
 
         payment.cancel(userId);
     }

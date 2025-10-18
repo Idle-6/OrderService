@@ -1,5 +1,8 @@
 package com.sparta.orderservice.manage.application.service;
 
+import com.sparta.orderservice.category.domain.entity.Category;
+import com.sparta.orderservice.category.domain.repository.CategoryRepository;
+import com.sparta.orderservice.manage.presentation.dto.response.ResCategoryDetailDtoV1;
 import com.sparta.orderservice.manage.domain.repository.ManageOrderMenuRepository;
 import com.sparta.orderservice.manage.domain.repository.ManageOrderRepository;
 import com.sparta.orderservice.manage.domain.repository.ManageStoreRepository;
@@ -8,7 +11,6 @@ import com.sparta.orderservice.manage.presentation.advice.exception.ManageExcept
 import com.sparta.orderservice.manage.presentation.dto.response.*;
 import com.sparta.orderservice.order.domain.entity.Order;
 import com.sparta.orderservice.order.domain.entity.OrderMenu;
-import com.sparta.orderservice.order.domain.entity.OrderStatus;
 import com.sparta.orderservice.store.domain.entity.Store;
 import com.sparta.orderservice.user.domain.entity.User;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +30,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +39,7 @@ public class ManageServiceV1 {
     private final ManageStoreRepository storeRepository;
     private final ManageOrderRepository orderRepository;
     private final ManageOrderMenuRepository orderMenuRepository;
+    private final CategoryRepository categoryRepository;
 
     private static final Set<String> ALLOWED_SORT_FIELDS =
             Set.of("orderId", "createdAt", "updatedAt", "totalPrice", "orderStatus", "id", "name", "email");
@@ -307,5 +309,25 @@ public class ManageServiceV1 {
                 .amount(om.getOrderMenuQty())
                 .price(om.getMenu() != null ? om.getMenu().getPrice() : 0)
                 .build();
+    }
+
+    /* 카테고리 리스트 조회 */
+    @Transactional(readOnly = true)
+    public List<ResCategoryDetailDtoV1> getCategoryList() {
+
+        List<Category> categoryList = categoryRepository.findAll();
+        List<ResCategoryDetailDtoV1> resCategoryDtoV1List = new ArrayList<>();
+
+        for(Category category : categoryList) {
+            resCategoryDtoV1List.add(new ResCategoryDetailDtoV1(
+                    category.getCategoryId(),
+                    category.getName(),
+                    category.getCreatedAt(),
+                    category.getUpdatedAt(),
+                    category.getDeletedAt()
+            ));
+        }
+
+        return resCategoryDtoV1List;
     }
 }
