@@ -41,14 +41,14 @@ public class OrderRepositoryTest {
     @Autowired
     TestEntityManager manager;
 
-    User user1;
+    User user1, admin;
     Category category1, category2;
     Store store1;
     Order order1, order2;
 
     @BeforeEach
     void setUp() {
-        User admin = User.builder().email("admin@test.com").password("admin1").name("관리자").address("서울 강남구").role(UserRoleEnum.ADMIN).isActive(true).build();
+        admin = User.builder().email("admin@test.com").password("admin1").name("관리자").address("서울 강남구").role(UserRoleEnum.ADMIN).isActive(true).build();
         user1 = User.builder().email("user1@test.com").password("password1").name("김철수").address("서울 강남구").role(UserRoleEnum.USER).isActive(true).build();
         User user2 = User.builder().email("user2@test.com").password("password2").name("이영희").address("서울 마포구").role(UserRoleEnum.USER).isActive(true).build();
         manager.persist(admin);
@@ -102,7 +102,7 @@ public class OrderRepositoryTest {
     @DisplayName("주문 리스트 조회 - 전체")
     void findOrderPage() {
         SearchParam searchParam = new SearchParam();
-        Page<ResOrderDtoV1> response = orderRepository.findOrderPage(searchParam, Pageable.ofSize(5));
+        Page<ResOrderDtoV1> response = orderRepository.findOrderPage(searchParam, Pageable.ofSize(5), admin);
 
         assertFalse(response.isEmpty());
         assertAll(() -> {
@@ -122,7 +122,7 @@ public class OrderRepositoryTest {
         manager.flush();
         
         SearchParam searchParam = new SearchParam(null, order1.getOrderStatus());
-        Page<ResOrderDtoV1> response = orderRepository.findOrderPage(searchParam, Pageable.ofSize(5));
+        Page<ResOrderDtoV1> response = orderRepository.findOrderPage(searchParam, Pageable.ofSize(5), user1);
 
         assertFalse(response.isEmpty());
 
@@ -140,7 +140,7 @@ public class OrderRepositoryTest {
         Pageable pageable = Pageable.ofSize(5);
 
         // when
-        Page<ResOrderDtoV1> response = orderRepository.findOrderPage(searchParam, pageable);
+        Page<ResOrderDtoV1> response = orderRepository.findOrderPage(searchParam, pageable, admin);
 
         // then
         assertFalse(response.isEmpty());

@@ -179,9 +179,11 @@ public class OrderServiceV1 {
                         OrderExceptionLogUtils.getNotFoundMessage(orderId, userId)
                 ));
 
+        boolean isAdmin = Objects.equals(user.getRole().getAuthority(), UserRoleEnum.ADMIN.getAuthority());
+        boolean isOwner = Objects.equals(user.getRole().getAuthority(), UserRoleEnum.OWNER.getAuthority())
+                && Objects.equals(order.getStore().getCreatedBy().getUserId(), user.getUserId());
         // 권한 체크
-        if (Objects.equals(user.getRole().getAuthority(), UserRoleEnum.USER.getAuthority()) ||
-                !hasPermission(user, order)) {
+        if (!isAdmin && !isOwner) {
             throw new OrderException(
                     OrderErrorCode.ORDER_UPDATE_FORBIDDEN,
                     OrderExceptionLogUtils.getUpdateForbiddenMessage(orderId, userId)
