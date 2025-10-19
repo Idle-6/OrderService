@@ -61,7 +61,7 @@ public class CategoryServiceV1 {
     public ResCategoryDtoV1 updateCategory(UUID categoryId, ReqCategoryUpdateDtoV1 request, Long userId) {
         checkCategoryNameDuplication(request.getName(), userId);
 
-        Category category = categoryRepository.findById(categoryId)
+        Category category = categoryRepository.findCategoryById(categoryId)
                 .orElseThrow(() -> new CategoryException(
                         CategoryErrorCode.CATEGORY_NOT_FOUND,
                         CategoryExceptionLogUtils.getNotFoundMessage(categoryId, userId)

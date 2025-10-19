@@ -74,12 +74,12 @@ class StoreServiceV1Test {
         ReflectionTestUtils.setField(user, "userId", 2L);
 
         when(storeRepository.existsStoreByUserId(Mockito.anyLong())).thenReturn(false);
-        when(categoryRepository.findById(Mockito.any())).thenReturn(Optional.of(category));
+        when(categoryRepository.findCategoryById(Mockito.any())).thenReturn(Optional.of(category));
 
         ReqStoreDtoV1 request = new ReqStoreDtoV1(categoryId, "가게이름2", "223-45-67890", "010-2222-2222", "서울 마포구 연남동", "시원한 한식", false);
         storeService.createStore(request, user);
 
-        verify(categoryRepository, Mockito.times(1)).findById(Mockito.any());
+        verify(categoryRepository, Mockito.times(1)).findCategoryById(Mockito.any());
         verify(storeRepository, Mockito.times(1)).save(Mockito.any(Store.class));
     }
 
@@ -183,20 +183,20 @@ class StoreServiceV1Test {
     @DisplayName("가게 수정 - 카테고리")
     void updateStore_category() {
         when(storeRepository.findById(Mockito.any())).thenReturn(Optional.of(store));
-        when(categoryRepository.findById(Mockito.any())).thenReturn(Optional.of(category));
+        when(categoryRepository.findCategoryById(Mockito.any())).thenReturn(Optional.of(category));
 
         ReqStoreUpdateDtoV1 request = new ReqStoreUpdateDtoV1(categoryId, "가게2", null, null, null, null,  true);
         storeService.updateStore(storeId, request, user);
 
         verify(storeRepository, Mockito.times(1)).findById(Mockito.any());
-        verify(categoryRepository, Mockito.times(1)).findById(Mockito.any());
+        verify(categoryRepository, Mockito.times(1)).findCategoryById(Mockito.any());
     }
 
     @Test
     @DisplayName("가게 수정 - 존재하지 않는 카테고리")
     void updateStore_category_not_found() {
         when(storeRepository.findById(Mockito.any())).thenReturn(Optional.of(store));
-        when(categoryRepository.findById(Mockito.any())).thenReturn(Optional.empty());
+        when(categoryRepository.findCategoryById(Mockito.any())).thenReturn(Optional.empty());
 
         assertThrows(CategoryException.class, () -> {
             ReqStoreUpdateDtoV1 request = new ReqStoreUpdateDtoV1(UUID.randomUUID(), "가게2", null, null, null, null, true);
@@ -204,7 +204,7 @@ class StoreServiceV1Test {
         });
 
         verify(storeRepository, Mockito.times(1)).findById(Mockito.any());
-        verify(categoryRepository, Mockito.times(1)).findById(Mockito.any());
+        verify(categoryRepository, Mockito.times(1)).findCategoryById(Mockito.any());
     }
 
     @Test

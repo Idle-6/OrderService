@@ -43,7 +43,7 @@ public class StoreServiceV1 {
             );
         }
 
-        Category category = categoryRepository.findById(request.getCategoryId())
+        Category category = categoryRepository.findCategoryById(request.getCategoryId())
                 .orElseThrow(() -> new CategoryException(
                         CategoryErrorCode.CATEGORY_NOT_FOUND,
                         CategoryExceptionLogUtils.getNotFoundMessage(request.getCategoryId(), userId)
@@ -109,7 +109,7 @@ public class StoreServiceV1 {
 
         Category newCategory = null;
         if (request.getCategoryId() != null) {
-            newCategory = categoryRepository.findById(request.getCategoryId())
+            newCategory = categoryRepository.findCategoryById(request.getCategoryId())
                     .orElseThrow(() -> new CategoryException(
                             CategoryErrorCode.CATEGORY_NOT_FOUND,
                             CategoryExceptionLogUtils.getNotFoundMessage(request.getCategoryId(), userId)

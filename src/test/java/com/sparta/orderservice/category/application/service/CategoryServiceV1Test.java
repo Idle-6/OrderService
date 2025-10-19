@@ -69,11 +69,11 @@ class CategoryServiceV1Test {
     @Test
     @DisplayName("카테고리 리스트 조회")
     void getCategoryList() {
-        when(categoryRepository.findAll()).thenReturn(List.of(category));
+        when(categoryRepository.findAllByDeletedAtIsNull()).thenReturn(List.of(category));
 
         categoryService.getCategoryList();
 
-        verify(categoryRepository, Mockito.times(1)).findAll();
+        verify(categoryRepository, Mockito.times(1)).findAllByDeletedAtIsNull();
     }
 
     @Test
@@ -102,18 +102,18 @@ class CategoryServiceV1Test {
     @DisplayName("카테고리 수정")
     void updateCategory() {
         ReqCategoryUpdateDtoV1 request = new ReqCategoryUpdateDtoV1("양식");
-        when(categoryRepository.findById(Mockito.any())).thenReturn(Optional.of(category));
+        when(categoryRepository.findCategoryById(Mockito.any())).thenReturn(Optional.of(category));
 
         categoryService.updateCategory(categoryId, request, 1L);
 
-        verify(categoryRepository, Mockito.times(1)).findById(Mockito.any());
+        verify(categoryRepository, Mockito.times(1)).findCategoryById(Mockito.any());
     }
 
     @Test
     @DisplayName("카테고리 수정 - 존재하지 않음")
     void updateCategory_not_found() {
         ReqCategoryUpdateDtoV1 request = new ReqCategoryUpdateDtoV1("양식");
-        when(categoryRepository.findById(Mockito.any())).thenReturn(Optional.empty());
+        when(categoryRepository.findCategoryById(Mockito.any())).thenReturn(Optional.empty());
 
         assertThrows(CategoryException.class, () ->
             categoryService.updateCategory(categoryId, request, 1L)
