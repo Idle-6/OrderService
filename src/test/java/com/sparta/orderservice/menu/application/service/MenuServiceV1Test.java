@@ -224,7 +224,7 @@ class MenuServiceV1Test {
                 .isPublic(true)
                 .build();
 
-        when(menuRepository.findById(any(UUID.class)))
+        when(menuRepository.findByIdAndDeletedAtNull(any(UUID.class)))
         .thenReturn(Optional.of(new MenuEntity()));
 
 //        when(menuRepository.save(any(MenuEntity.class)))
@@ -234,7 +234,7 @@ class MenuServiceV1Test {
         menuServiceV1.updateMenu(menuId, requestDto);
 
         //then
-        verify(menuRepository, times(1)).findById(any(UUID.class));
+        verify(menuRepository, times(1)).findByIdAndDeletedAtNull(any(UUID.class));
 //        verify(menuRepository, times(1)).save(any(MenuEntity.class));
     }
 

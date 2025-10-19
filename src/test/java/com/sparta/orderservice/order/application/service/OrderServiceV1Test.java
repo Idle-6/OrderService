@@ -84,7 +84,7 @@ public class OrderServiceV1Test {
 
     @BeforeEach
     void setUp() {
-        user = User.builder().email("user1@test.com").password("password1").name("김철수").address("서울 강남구").role(UserRoleEnum.USER).isActive(true).build();
+        user = User.builder().email("user1@test.com").password("password1").name("김철수").address("서울 강남구").role(UserRoleEnum.OWNER).isActive(true).build();
         ReflectionTestUtils.setField(user, "userId", 1L);
 
         category = Category.ofNewCategory("한식", user.getUserId());
@@ -178,10 +178,12 @@ public class OrderServiceV1Test {
         UUID orderId = UUID.randomUUID();
         ResOrderDetailDtoV1 response = new ResOrderDetailDtoV1(orderId, "배고파서 현기증 나요", 30000, OrderStatus.START, store.getName(), store.getDescription(), orderMenus, LocalDateTime.now(), LocalDateTime.now());
         when(orderRepository.findOrderDetailById(orderId)).thenReturn(Optional.of(response));
+        when(orderRepository.findById(Mockito.any())).thenReturn(Optional.of(order));
 
         orderServiceV1.getOrderDetail(orderId, user);
 
         verify(orderRepository, Mockito.times(1)).findOrderDetailById(Mockito.any());
+        verify(orderRepository, Mockito.times(1)).findById(Mockito.any());
     }
 
     @Test

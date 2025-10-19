@@ -6,6 +6,7 @@ import com.sparta.orderservice.auth.presentation.advice.AuthException;
 import com.sparta.orderservice.auth.presentation.dto.ResReissueDtoV1;
 import com.sparta.orderservice.global.infrastructure.security.UserDetailsServiceImpl;
 import com.sparta.orderservice.user.domain.entity.UserRoleEnum;
+import com.sparta.orderservice.user.domain.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -28,6 +30,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceV1Test {
+
+    @Mock
+    UserRepository userRepository;
 
     @Mock
     JwtUtil jwtUtil;
@@ -70,6 +75,8 @@ class AuthServiceV1Test {
         when(jwtUtil.createAccessToken(email, userId, UserRoleEnum.USER)).thenReturn("newAT");
         when(jwtUtil.createRefreshToken(email, userId)).thenReturn("newRT");
 
+        when(userRepository.updateTokenExpiredAtById(Mockito.anyLong(), Mockito.anyLong())).thenReturn(1);
+
         HttpServletResponse response = new MockHttpServletResponse();
 
         // when
@@ -88,6 +95,8 @@ class AuthServiceV1Test {
         verify(jwtUtil).validateToken(refreshToken, false);
         verify(jwtUtil).getUserInfoFromToken(refreshToken);
 
+        verify(userRepository).updateTokenExpiredAtById(Mockito.anyLong(), Mockito.anyLong());
+
         assertThat(dto.isRefreshRotated()).isTrue();
     }
 
@@ -100,6 +109,8 @@ class AuthServiceV1Test {
         // AT 생성
         when(jwtUtil.createAccessToken(email, userId, UserRoleEnum.USER)).thenReturn("newAT");
 
+        when(userRepository.updateTokenExpiredAtById(Mockito.anyLong(), Mockito.anyLong())).thenReturn(1);
+
         HttpServletResponse response = new MockHttpServletResponse();
 
         // when
@@ -110,6 +121,8 @@ class AuthServiceV1Test {
         verify(jwtUtil).addAccessTokenToHeader(response, "newAT");
         verify(jwtUtil, never()).createRefreshToken(anyString(), anyLong());
         verify(jwtUtil, never()).addRefreshTokenToCookie(any(), anyString());
+
+        verify(userRepository).updateTokenExpiredAtById(Mockito.anyLong(), Mockito.anyLong());
 
         assertThat(dto.isRefreshRotated()).isFalse();
     }
