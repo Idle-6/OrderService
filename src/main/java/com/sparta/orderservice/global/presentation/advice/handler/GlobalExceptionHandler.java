@@ -12,6 +12,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ResExceptionDtoV1> handleRuntimeException(ExceptionIfs ex) {
+        return GlobalExceptionHandler.handleExceptionCommon(ex);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResExceptionDtoV1> handleException(Exception ex){
         log.error(ex.getMessage());
